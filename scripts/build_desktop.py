@@ -69,7 +69,7 @@ def main():
     if not args.package_only:
         notices()
         icon()
-        subprocess.run([sys.executable, "-m", "PyInstaller", "--noconfirm", "packaging/lumen.spec"],
+        subprocess.run([sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "packaging/lumen.spec"],
                        cwd=ROOT, check=True)
     bundle = ROOT / "dist/LUMENScience"
     marker = bundle / ".lumen-installation"

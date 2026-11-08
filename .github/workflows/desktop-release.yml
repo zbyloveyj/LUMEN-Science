@@ -7,6 +7,7 @@ on:
       - packaging/**
       - scripts/build_desktop.py
       - scripts/setup_build_tools.ps1
+      - scripts/fetch_nsis.py
       - scripts/smoke_desktop.py
       - requirements-desktop.txt
       - .github/workflows/desktop-release.yml

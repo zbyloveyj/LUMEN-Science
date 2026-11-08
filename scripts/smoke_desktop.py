@@ -80,7 +80,10 @@ def main():
                         while time.monotonic() < deadline:
                             run = api("run.read", project_id=project_id, run_id=run["id"])
                             if run["status"] not in ("queued", "running"):
-                                assert run["status"] == "success", run
+                                if run["status"] != "success":
+                                    logs = "\n".join(p.read_text(encoding="utf-8", errors="replace")[-5000:]
+                                                     for p in (root / "state/projects").glob("*/.lumen/kernels/*.log"))
+                                    raise AssertionError(json.dumps(run, ensure_ascii=False) + "\n" + logs)
                                 return run
                             time.sleep(.2)
                         raise AssertionError("Packaged computation timed out")
