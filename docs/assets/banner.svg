@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300">
+<rect width="1200" height="300" rx="20" fill="#173333"/>
+<rect x="62" y="73" width="102" height="116" rx="25" fill="#23473e" stroke="#537f68"/>
+<path d="M91 161V101h16v46h35v14z" fill="#d3ead7"/>
+<path d="m139 84 5 12 12 5-12 5-5 12-5-12-12-5 12-5z" fill="#a7cfb3"/>
+<text x="201" y="132" fill="#e7f3e8" font-family="Segoe UI,Arial,sans-serif" font-size="52" font-weight="600" letter-spacing="4">LUMEN SCIENCE</text>
+<text x="204" y="176" fill="#a9c3b2" font-family="Segoe UI,Arial,sans-serif" font-size="18" letter-spacing="3">LOCAL-FIRST · MULTILINGUAL · TRACEABLE</text>
+<path d="M205 206h710" stroke="#406451"/>
+<text x="205" y="239" fill="#7d9e89" font-family="Segoe UI,Arial,sans-serif" font-size="13" letter-spacing="2">QUESTIONS → CODE → COMPUTE → EVIDENCE → RESULTS</text>
+<g fill="none" stroke="#547b63" stroke-width="1.5"><rect x="959" y="83" width="82" height="56" rx="10"/><rect x="1054" y="163" width="82" height="56" rx="10"/><path d="M1000 139v51h54m-13-79h54v52"/></g>
+<text x="981" y="117" fill="#98bca0" font-family="Consolas,monospace" font-size="18">&lt;/&gt;</text><text x="1078" y="197" fill="#98bca0" font-family="Consolas,monospace" font-size="18">42</text>
+</svg>

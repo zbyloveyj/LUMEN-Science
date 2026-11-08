@@ -1,0 +1,18 @@
+{
+  "version": "0.1.0",
+  "date": "2026-11-08",
+  "platform": "Windows",
+  "top_level_tests": 19,
+  "passed": 19,
+  "failed": 0,
+  "skipped": 0,
+  "full_run_seconds": 161.1,
+  "languages_executed": ["python", "R", "c", "cpp", "java", "javascript", "typescript", "powershell", "bash", "sql"],
+  "adapters_not_executed": ["go", "rust"],
+  "model_provider": "local deterministic HTTP fixture only",
+  "ssh_service": "local isolated SSH/SFTP protocol fixture only",
+  "metadata_services_live_checked": ["Crossref", "PubMed"],
+  "hosted_ci_verified": false,
+  "full_visual_acceptance": false,
+  "scientific_validity_verified": false
+}

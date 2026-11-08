@@ -1,0 +1,28 @@
+name: Bug report / 问题反馈
+description: Report a reproducible problem with synthetic data.
+body:
+  - type: markdown
+    attributes:
+      value: "请勿上传密钥、服务器认证信息或私人研究数据。Use a minimal synthetic example."
+  - type: input
+    id: version
+    attributes:
+      label: Version and operating system
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Redacted logs or a minimal synthetic example

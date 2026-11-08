@@ -1,0 +1,63 @@
+name: verify
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - run: python -m pip install -r requirements.txt
+      - run: python -m pip install --target .vendor ziglang==0.17.1
+      - name: Verify source
+        run: |
+          python -m compileall -q lumen tests
+          node --check web/app.js
+          node --check web/core.js
+          node --check web/workspace.js
+          node --check web/research.js
+          node --check web/notebook.js
+          node --check web/servers.js
+      - name: Synthetic local verification
+        env:
+          PYTHONUTF8: "1"
+          PYDEVD_DISABLE_FILE_VALIDATION: "1"
+          JUPYTER_PLATFORM_DIRS: "1"
+        run: python -m unittest discover -s tests -v
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - run: python -m pip install -r requirements.txt
+      - name: Synthetic local verification
+        env:
+          PYTHONUTF8: "1"
+          PYDEVD_DISABLE_FILE_VALIDATION: "1"
+          JUPYTER_PLATFORM_DIRS: "1"
+        run: python -m unittest discover -s tests -v

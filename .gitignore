@@ -1,0 +1,14 @@
+.state/
+__pycache__/
+*.pyc
+.venv/
+.vendor/
+test-results/
+dist/
+*.log
+*.sqlite3*
+*.pem
+*.key
+.env
+.env.*
+!.env.example
