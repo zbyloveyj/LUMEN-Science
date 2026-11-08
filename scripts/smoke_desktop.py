@@ -6,6 +6,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import tempfile
 import time
 import urllib.request
@@ -16,6 +17,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("executable", type=Path)
     parser.add_argument("--report", type=Path, default=Path("test-results/desktop-smoke.json"))
+    parser.add_argument("--extended", action="store_true", help="Also check external languages, cancellation, AI and SSH fixtures")
     args = parser.parse_args()
     executable = args.executable.resolve()
     args.report.parent.mkdir(parents=True, exist_ok=True)
@@ -105,6 +107,10 @@ def main():
                     export = api("notebook.export", project_id=project_id, session_id=session_id)
                     assert export["path"].endswith(".ipynb")
                     checks.append("notebook_export")
+                    if args.extended:
+                        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tests"))
+                        from desktop_api_checks import extended_checks
+                        checks.extend(extended_checks(api, code, wait, boot, url))
                 finally:
                     if token and process.poll() is None:
                         try:
@@ -117,7 +123,9 @@ def main():
                         process.kill()
                         raise AssertionError("Packaged app did not stop after shutdown")
                     assert process.returncode == 0, "Packaged app failed during shutdown"
-    report = {"status": "passed", "checks": checks, "scope": "Packaged Windows API/runtime; graphical window is checked separately"}
+    report = {"status": "passed", "checks": [c for c in checks if "_skipped_" not in c],
+              "skipped": [c for c in checks if "_skipped_" in c],
+              "scope": "Packaged Windows API/runtime; graphical window is checked separately"}
     args.report.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps(report))
 

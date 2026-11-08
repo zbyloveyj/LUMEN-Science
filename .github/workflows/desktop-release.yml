@@ -9,6 +9,7 @@ on:
       - scripts/setup_build_tools.ps1
       - scripts/fetch_nsis.py
       - scripts/smoke_desktop.py
+      - tests/desktop_api_checks.py
       - requirements-desktop.txt
       - .github/workflows/desktop-release.yml
   workflow_dispatch:
@@ -66,7 +67,7 @@ jobs:
       - name: Build portable app and installer
         run: python scripts/build_desktop.py --makensis .tools/nsis-3.11/makensis.exe
       - name: Verify portable runtime without Python on PATH
-        run: python scripts/smoke_desktop.py dist/LUMENScience/LUMENScience.exe --report test-results/portable-smoke.json
+        run: python scripts/smoke_desktop.py dist/LUMENScience/LUMENScience.exe --extended --report test-results/portable-smoke.json
       - name: Verify installer, installed runtime and uninstaller
         shell: pwsh
         run: |

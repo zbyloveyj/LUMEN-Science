@@ -7,7 +7,7 @@ python -m venv .build-venv
 .build-venv/Scripts/python -m pip install -r requirements-desktop.txt
 ./scripts/setup_build_tools.ps1
 .build-venv/Scripts/python scripts/build_desktop.py --makensis .tools/nsis-3.11/makensis.exe
-.build-venv/Scripts/python scripts/smoke_desktop.py dist/LUMENScience/LUMENScience.exe
+.build-venv/Scripts/python scripts/smoke_desktop.py dist/LUMENScience/LUMENScience.exe --extended
 ~~~
 
 The tools script downloads NSIS 3.11 from its official SourceForge mirror, checks the pinned archive hash, and checks the Microsoft bootstrapper Authenticode signature. Building does not include .state, .vendor, credentials, local projects or the source environment. Third-party license files and package versions are included under `_internal/THIRD_PARTY_NOTICES`.

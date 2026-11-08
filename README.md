@@ -138,6 +138,8 @@ python -m unittest discover -s tests -v
 
 测试会使用独立临时项目、合成数据、本机模型接口替身和 SSH/SFTP 测试服务。不会连接真实账号或业务服务器。计算内核和测试服务需要本机端口；受限执行环境可能禁止运行。
 
+0.2.0 安装后的综合执行检查已通过24项，Go/Rust 因本机未安装而跳过。具体修复、执行清单和限制见 [缺陷检查记录](docs/BUG_AUDIT.md)。
+
 本地验证记录与测试边界见 [docs/VERIFICATION.md](docs/VERIFICATION.md)。[首次修复后的云端验证](https://github.com/zbyloveyj/LUMEN-Science/actions/runs/42445475251)中，Windows 的20项测试全部通过；Linux 整体通过，未安装 R 的对应子用例跳过。CI 通过不等于全部桌面交互和真实外部服务已完成验收。
 
 ## 结构

@@ -9,25 +9,6 @@
     "skipped": 0,
     "full_run_seconds": 161.1
   },
-  "hosted_ci": {
-    "run_id": 42445475251,
-    "code_commit": "c723e1908602531f6e3153974911e385051edd4f",
-    "url": "https://github.com/zbyloveyj/LUMEN-Science/actions/runs/42445475251",
-    "conclusion": "success",
-    "windows": {
-      "tests": 20,
-      "seconds": 55.185,
-      "conclusion": "success"
-    },
-    "linux": {
-      "tests": 20,
-      "seconds": 17.791,
-      "conclusion": "success",
-      "skipped_subcases": [
-        "R toolchain unavailable"
-      ]
-    }
-  },
   "languages_executed": [
     "python",
     "R",
@@ -63,5 +44,66 @@
     "checks_passed": 7,
     "system_python_on_path": false,
     "scope": "Packaged runtime and API; installer and final GUI reviewed separately"
-  }
+  },
+  "hosted_ci_previous_0_1": {
+    "run_id": 42445475251,
+    "code_commit": "c723e1908602531f6e3153974911e385051edd4f",
+    "url": "https://github.com/zbyloveyj/LUMEN-Science/actions/runs/42445475251",
+    "conclusion": "success",
+    "windows": {
+      "tests": 20,
+      "seconds": 55.185,
+      "conclusion": "success"
+    },
+    "linux": {
+      "tests": 20,
+      "seconds": 17.791,
+      "conclusion": "success",
+      "skipped_subcases": [
+        "R toolchain unavailable"
+      ]
+    }
+  },
+  "hosted_ci": {
+    "run_id": 42466266244,
+    "code_commit": "d7fd12fb2215aa96c3c48cc3f4ddbde3d5ed2d2b",
+    "url": "https://github.com/zbyloveyj/LUMEN-Science/actions/runs/42466266244",
+    "conclusion": "success",
+    "windows": {
+      "tests": 22,
+      "seconds": 45.49,
+      "conclusion": "success"
+    },
+    "linux": {
+      "tests": 22,
+      "seconds": 33.451,
+      "conclusion": "success",
+      "skipped_subcases": [
+        "R toolchain unavailable"
+      ]
+    }
+  },
+  "release": {
+    "version": "0.2.0",
+    "url": "https://github.com/zbyloveyj/LUMEN-Science/releases/tag/v0.2.0",
+    "workflow_run_id": 42466266229,
+    "conclusion": "success",
+    "assets": [
+      "Windows x64 installer",
+      "Windows x64 portable ZIP",
+      "source ZIP",
+      "SHA256SUMS",
+      "portable/installed smoke reports"
+    ]
+  },
+  "installed_extended_audit": {
+    "passed": 24,
+    "skipped": [
+      "go",
+      "rust"
+    ],
+    "report": "desktop-audit.json",
+    "model_and_ssh_scope": "isolated local protocol fixtures"
+  },
+  "uninstall_preserves_unknown_user_file": true
 }

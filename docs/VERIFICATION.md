@@ -2,6 +2,10 @@
 
 Date: 2026-11-08. Version: 0.2.0 desktop preview. Earlier 0.1.0 results below are retained as historical evidence.
 
+The downloadable [v0.2.0 prerelease](https://github.com/zbyloveyj/LUMEN-Science/releases/tag/v0.2.0) was published after [desktop release run 42466266229](https://github.com/zbyloveyj/LUMEN-Science/actions/runs/42466266229) passed. Subsequent local installed-app acceptance passed **24 execution checks**, with Go/Rust explicitly skipped. Actual local uninstallation also retained an extra user-created file. See [BUG_AUDIT.md](BUG_AUDIT.md) and [desktop-audit.json](desktop-audit.json).
+
+[Source CI run 42466266244](https://github.com/zbyloveyj/LUMEN-Science/actions/runs/42466266244) passed 22 tests on both Windows (45.490 seconds) and Linux (33.451 seconds); Linux skipped its unavailable R subcase.
+
 ## Windows desktop source checks
 
 Final local source suite: **22 tests passed**, 0 failures, 74.504 seconds. This includes two additional frozen-worker routing checks.

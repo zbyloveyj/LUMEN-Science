@@ -1,0 +1,37 @@
+{
+  "status": "passed",
+  "checks": [
+    "isolated_start_without_system_python",
+    "bundled_csv_preview",
+    "bundled_persistent_python_kernel",
+    "bundled_sql_worker",
+    "independent_pandas_scipy_matplotlib_workflow_and_artifacts",
+    "notebook_export",
+    "kernel_recovers_after_user_code_error",
+    "active_and_queued_cancellation_with_kernel_recovery",
+    "bundled_workflow_group_and_snapshot_hashes",
+    "bundled_workflow_correlation_and_snapshot_hashes",
+    "bundled_workflow_regression_and_snapshot_hashes",
+    "installed_app_executes_external_javascript",
+    "installed_app_executes_external_typescript",
+    "installed_app_executes_external_R",
+    "installed_app_executes_external_c",
+    "installed_app_executes_external_cpp",
+    "installed_app_executes_external_java",
+    "installed_app_executes_external_powershell",
+    "installed_app_executes_external_bash",
+    "installed_app_executes_user_configured_python",
+    "packaged_model_protocols_and_approved_agent_execution_fixture",
+    "packaged_pinned_ssh_sftp_and_remote_command_fixture",
+    "delivery_zip_excludes_api_credential_kernel_keys_and_raw_data",
+    "restart_preserves_project_and_run_history"
+  ],
+  "scope": "Packaged Windows API/runtime; graphical window is checked separately",
+  "skipped": [
+    "external_go_skipped_tool_not_installed",
+    "external_rust_skipped_tool_not_installed"
+  ],
+  "release_version": "0.2.0",
+  "environment": "Local Windows x64 installed app; external toolchains explicitly configured",
+  "models_and_ssh": "Isolated local protocol fixtures, no production credentials"
+}
