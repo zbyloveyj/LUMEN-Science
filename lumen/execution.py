@@ -18,6 +18,7 @@ from .files import changed_outputs, identity, output_snapshot, safe_path, sha256
 from .store import now
 from .runners import LANGUAGES, plan, resolve_tool
 from .scratch import compiler_workspace
+from .runtime import python_executable, kernel_command
 
 
 def stop_process(process):
@@ -83,14 +84,17 @@ class Execution:
             name = "python3"
         km = KernelManager(kernel_name=name)
         if language == "python":
-            interpreter = settings.get("python_path") or sys.executable
+            interpreter = python_executable(settings)
             if not Path(interpreter).is_file():
                 raise ValueError("Python 解释器路径不存在")
-            km.kernel_spec.argv = [interpreter, "-m", "ipykernel_launcher", "-f", "{connection_file}"]
+            km.kernel_spec.argv = kernel_command(settings)
         runtime = root / ".lumen" / "kernels"
         runtime.mkdir(parents=True, exist_ok=True)
         km.connection_file = str(runtime / ("kernel-" + key.replace(":", "-") + ".json"))
-        km.start_kernel(cwd=str(root), env={**os.environ, "MPLBACKEND": "module://matplotlib_inline.backend_inline"})
+        launch_options = {"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}
+        with (runtime / ("kernel-" + key.replace(":", "-") + ".log")).open("ab") as log:
+            km.start_kernel(cwd=str(root), env={**os.environ, "MPLBACKEND": "module://matplotlib_inline.backend_inline"},
+                            stdout=log, stderr=log, **launch_options)
         client = km.blocking_client()
         client.start_channels()
         try:

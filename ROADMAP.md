@@ -1,10 +1,12 @@
 # Roadmap
 
-Status: early preview, 0.1.0.
+Status: desktop preview, 0.2.0.
 
 ## Implemented
 
 - Local projects, sessions and file APIs.
+- Windows native window, bundled Python workers, installer/portable packaging and gated release workflow.
+- Light interface with translucent navigation, blue selection and consistent desktop controls.
 - Twelve language adapters, with detected/configured toolchain status.
 - Python persistent kernel and optional R environment support.
 - Two model protocol adapters, tool loop and execution review.
@@ -21,7 +23,7 @@ Status: early preview, 0.1.0.
 - macOS/Linux real-machine acceptance, including cancellation and credential behavior.
 - External model/provider compatibility matrix with user-configured test credentials.
 - Real remote Linux acceptance with disposable user-provided infrastructure.
-- Desktop packaging, clean installation and upgrade validation.
+- Broader clean-machine installation and cross-version upgrade acceptance.
 
 ## Planned; not implemented
 

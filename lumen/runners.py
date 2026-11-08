@@ -6,6 +6,7 @@ import shutil
 import sys
 import os
 from pathlib import Path
+from .runtime import python_executable, python_command, resources
 
 LANGUAGES = {
     "python": {"label": "Python", "file": "code.py", "tool": "python", "mode": "持续内核 / 独立进程"},
@@ -28,7 +29,7 @@ def resolve_tool(name, config):
     if configured:
         return configured if Path(configured).is_file() else None
     if name in ("python", "sqlite"):
-        return config.get("python_path") or sys.executable
+        return python_executable(config)
     if name == "Rscript":
         detected=config.get("rscript_path") or shutil.which("Rscript")
         if detected:return detected
@@ -80,7 +81,7 @@ def plan(language, run_dir, config):
     script = Path(run_dir) / spec["file"]
     binary = Path(run_dir) / ("program.exe" if sys.platform == "win32" else "program")
     if language == "python":
-        return [[executable, "-u", str(script)]]
+        return [python_command(config, script)]
     if language == "R":
         return [[executable, "--vanilla", str(script)]]
     if language in ("c", "cpp"):
@@ -104,5 +105,5 @@ def plan(language, run_dir, config):
     if language == "bash":
         return [[executable, str(script)]]
     if language == "sql":
-        return [[executable, "-u", str(Path(__file__).with_name("sqlite_runner.py")), str(script)]]
+        return [python_command(config, resources() / "lumen" / "sqlite_runner.py", script)]
     raise ValueError("没有配置此语言的执行方式")

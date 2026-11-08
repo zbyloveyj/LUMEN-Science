@@ -6,12 +6,14 @@ import json
 import os
 import subprocess
 import sys
+import threading
 import urllib.request
 import webbrowser
 from pathlib import Path
 
 from lumen.app import Workbench
 from lumen.server import LocalServer
+from lumen.runtime import default_data_dir, frozen, resources
 
 
 def open_window(url):
@@ -28,11 +30,22 @@ def open_window(url):
     webbrowser.open(url)
 
 
+def desktop_window(url, root):
+    import webview
+    webview.settings["ALLOW_DOWNLOADS"] = True
+    window = webview.create_window("LUMEN Science", url, width=1440, height=960,
+                                  min_size=(1000, 700))
+    webview.start(gui="edgechromium" if os.name == "nt" else None,
+                  private_mode=False, storage_path=str(root / "webview"))
+    return window
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8765)
-    parser.add_argument("--data-dir", default=str(Path(__file__).parent / ".state"))
+    parser.add_argument("--data-dir", default=str(default_data_dir()))
     parser.add_argument("--no-browser", action="store_true")
+    parser.add_argument("--browser", action="store_true", help="Use an external browser instead of the desktop window")
     args = parser.parse_args()
     root = Path(args.data_dir).resolve()
     root.mkdir(parents=True, exist_ok=True)
@@ -44,24 +57,38 @@ def main():
                 health = json.load(response)
             if health.get("instance_id") == info.get("instance_id") and health.get("service") == "lumen-science":
                 if not args.no_browser:
-                    open_window(info["url"])
-                print(info["url"], flush=True)
+                    if frozen() and not args.browser:
+                        desktop_window(info["url"], root)
+                    else:
+                        open_window(info["url"])
+                if sys.stdout:
+                    print(info["url"], flush=True)
                 return
         except Exception:
             pass
     app = Workbench(root)
     try:
-        server = LocalServer(("127.0.0.1", args.port), app, Path(__file__).parent / "web")
+        server = LocalServer(("127.0.0.1", args.port), app, resources() / "web")
     except OSError:
-        server = LocalServer(("127.0.0.1", 0), app, Path(__file__).parent / "web")
+        server = LocalServer(("127.0.0.1", 0), app, resources() / "web")
     url = "http://127.0.0.1:" + str(server.server_port)
     info_file.write_text(json.dumps({"url": url, "instance_id": server.instance_id, "pid": os.getpid()}),
                          encoding="utf-8")
-    print("LUMEN Science  " + url, flush=True)
-    if not args.no_browser:
-        open_window(url)
+    if sys.stdout:
+        print("LUMEN Science  " + url, flush=True)
     try:
-        server.serve_forever(poll_interval=.3)
+        if not args.no_browser and frozen() and not args.browser:
+            thread = threading.Thread(target=server.serve_forever, kwargs={"poll_interval": .3}, daemon=True)
+            thread.start()
+            try:
+                desktop_window(url, root)
+            finally:
+                server.shutdown()
+                thread.join(timeout=5)
+        else:
+            if not args.no_browser:
+                open_window(url)
+            server.serve_forever(poll_interval=.3)
     except KeyboardInterrupt:
         pass
     finally:

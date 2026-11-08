@@ -1,6 +1,16 @@
 # Verification record
 
-Date: 2026-11-08. Version: 0.1.0 early preview.
+Date: 2026-11-08. Version: 0.2.0 desktop preview. Earlier 0.1.0 results below are retained as historical evidence.
+
+## Windows desktop source checks
+
+Final local source suite: **22 tests passed**, 0 failures, 74.504 seconds. This includes two additional frozen-worker routing checks.
+
+## Windows packaged runtime
+
+The local PyInstaller bundle passed seven public-API smoke checks with system Python removed from PATH: isolated startup, CSV preview, persistent Python state, SQL worker, independent pandas/SciPy/Matplotlib workflow with artifacts, notebook export and project/history preservation after restart. The native desktop window was also observed loading the application on Windows.
+
+The release workflow separately checks the final portable bundle and an actual silent installation, then checks manifest-based uninstallation while preserving an unknown user-created file. Release-asset smoke reports record the packaged scope. Graphical checks, real laboratory servers and live paid AI services are separate from those automated checks.
 
 ## Actual local results
 

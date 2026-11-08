@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.0 — 2026-11-08
+
+- Windows native desktop window using WebView2, with an application icon and download support.
+- Light desktop design with a translucent sidebar, blue selection, quieter cards and improved small-text legibility.
+- Bundled Python runtime with dedicated kernel/script workers; externally configured Python remains supported.
+- Per-user data storage independent of the installation folder; uninstall preserves project data and unknown files.
+- Windows x64 installer, portable ZIP, dependency license inventory and SHA-256 checksums.
+- Release workflow verifies source, packaged execution, installer and uninstaller before publishing a prerelease.
+- macOS/Linux remain source distributions; native installers and application auto-update are not implemented.
+
 ## 0.1.0 — 2026-11-08
 
 Initial local preview.

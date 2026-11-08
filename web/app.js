@@ -13,7 +13,7 @@ const views={overview,chat,notebook,data:dataView,workflows,library,artifacts,re
 let renderVersion=0;
 
 function shell(){
-  $('#app').innerHTML='<aside class="sidebar"><a class="brand" href="#" data-action="nav" data-view="overview"><span class="brand-logo">L<span>✦</span></span><span>LUMEN<small>SCIENCE WORKBENCH</small></span></a>'+
+  $('#app').innerHTML='<aside class="sidebar"><a class="brand" href="#" data-action="nav" data-view="overview" aria-label="LUMEN 研究总览"><span class="brand-logo">L<span>✦</span></span><span>LUMEN<small>Science · 科研工作台</small></span></a>'+
     '<div class="sidebar-project-label">当前研究项目</div><select id="project-select" aria-label="当前项目">'+state.boot.projects.map(p=>'<option value="'+p.id+'" '+(p.id===state.project.id?'selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select>'+
     '<button class="new-project-button" data-action="new-project">'+icon('plus',16)+' 新建 / 连接项目</button><div class="nav-label">工作空间</div><nav>'+navigation.map(([id,label,ic])=>'<button class="nav-item '+(state.view===id?'active':'')+'" data-action="nav" data-view="'+id+'">'+icon(ic)+'<span>'+label+'</span>'+(id==='servers'?'<small>SSH</small>':'')+'</button>').join('')+'</nav>'+
     '<div class="sidebar-bottom"><div class="local-card"><span class="status-dot"></span><strong>本地优先</strong><small>项目与计算，在你手中</small></div><button class="nav-item" data-action="nav" data-view="settings">'+icon('settings')+'<span>设置与环境</span></button><div class="sidebar-version">LUMEN Science <span>'+esc(state.boot.version)+'</span></div></div></aside>'+
@@ -35,7 +35,7 @@ async function navigate(view){
   await stashEditors();
   state.view=view;localStorage.setItem('lumen.view',view);
   const version=++renderVersion;
-  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+  document.querySelectorAll('.nav-item').forEach(b=>{const active=b.dataset.view===view;b.classList.toggle('active',active);b.setAttribute('aria-current',active?'page':'false');b.title=b.textContent.trim();});
   $('#breadcrumb-view').textContent=view==='settings'?'设置与环境':navigation.find(n=>n[0]===view)?.[1]||view;
   const main=$('#main-content');main.innerHTML='<div class="loading">正在打开工作空间…</div>';
   try{

@@ -6,7 +6,9 @@ Public repository: https://github.com/zbyloveyj/LUMEN-Science
 
 The initial public repository was created by the project owner. Publish updates only to this intended repository, preserving its existing history.
 
-The release source excludes .state, .vendor, .venv, test-results, logs, compiler caches, generated research projects, credentials and private keys.
+The release source excludes .state, .vendor, .venv, .build-venv, .tools, build, test-results, logs, compiler caches, generated research projects, credentials and private keys.
+
+Windows desktop build and the gated GitHub prerelease workflow are documented in [DESKTOP_BUILD.md](DESKTOP_BUILD.md). The source archive remains available for macOS/Linux and contributors. Desktop assets are unsigned early previews.
 
 ## Build the source archive
 

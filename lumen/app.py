@@ -22,6 +22,7 @@ from .secrets import Secrets
 from .store import Store, dumps, now, uid
 from .workflows import TEMPLATES, build_workflow
 from .runners import LANGUAGES, environments
+from .runtime import python_executable, frozen, default_data_dir
 from .remote import Remote
 
 
@@ -132,7 +133,8 @@ class Workbench:
         except ImportError:
             pass
         config = self.store.setting("config", {})
-        return {"python": sys.executable, "version": sys.version.split()[0], "platform": sys.platform,
+        return {"python": python_executable(config), "version": sys.version.split()[0], "platform": sys.platform,
+                "bundled_runtime": frozen(), "default_data_dir": str(default_data_dir()),
                 "packages": packages, "kernels": specs,
                 "rscript": config.get("rscript_path") or shutil.which("Rscript"),
                 "languages": environments(config),

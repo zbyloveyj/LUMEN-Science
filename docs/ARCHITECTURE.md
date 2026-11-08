@@ -2,6 +2,8 @@
 
 LUMEN uses a local HTTP boundary with a static, build-free frontend and a modular Python backend.
 
+The Windows desktop profile embeds that interface in a WebView2 window and packages two executables sharing the same bundled libraries. The GUI starts the loopback server; the console worker handles Python scripts and persistent kernels. User state lives outside the installation directory. See [DESKTOP_BUILD.md](DESKTOP_BUILD.md).
+
 ~~~mermaid
 flowchart LR
   U[Researcher] --> UI[Local interface]

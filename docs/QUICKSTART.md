@@ -2,7 +2,9 @@
 
 ## 1. 打开工作台
 
-在已安装依赖的 Windows 电脑双击“启动科研工作台.cmd”，或运行 python run.py。浏览器显示本地工作台；窗口关闭不会自动停止服务，再次启动会打开已有实例。
+Windows 普通用户可在 [Releases](https://github.com/zbyloveyj/LUMEN-Science/releases) 下载 x64 安装版，安装后打开桌面快捷方式；也可完整解压便携包，运行 LUMENScience.exe。内置 Python 与常用分析包，无需单独安装 Python。原生窗口关闭后会停止本实例服务，项目和设置保存在 `%LOCALAPPDATA%\LUMENScience`；卸载不删除研究资料。
+
+源码用户在安装依赖后双击“启动科研工作台.cmd”，或运行 python run.py。源码方式使用本机浏览器；浏览器窗口关闭不会自动停止服务，再次启动会打开已有实例。源码默认数据目录仍为 .state。
 
 命令行运行时可以按 Ctrl+C 停止；服务仅监听本机。默认端口被占用会选择新端口，不关闭其他程序。
 

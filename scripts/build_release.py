@@ -4,16 +4,18 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import sys
 import zipfile
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
-SOURCE_DIRS=("lumen","web","tests","docs","scripts",".github")
-ROOT_FILES=(".gitattributes","run.py","requirements.txt","requirements-data.txt","README.md","README.en.md",
+sys.path.insert(0,str(ROOT))
+SOURCE_DIRS=("lumen","web","tests","docs","scripts","packaging",".github")
+ROOT_FILES=(".gitattributes","run.py","desktop.py","requirements.txt","requirements-data.txt","requirements-desktop.txt","README.md","README.en.md",
             "LICENSE","CONTRIBUTING.md","SECURITY.md","ROADMAP.md","ACKNOWLEDGEMENTS.md",
             "CHANGELOG.md",".gitignore","启动科研工作台.cmd")
-EXTENSIONS={".py",".js",".css",".html",".svg",".md",".txt",".yml",".yaml",".json",".cmd"}
-EXCLUDED={".state",".vendor",".venv",".git","__pycache__","test-results","dist","node_modules"}
+EXTENSIONS={".py",".js",".css",".html",".svg",".md",".txt",".yml",".yaml",".json",".cmd",".ps1",".nsi",".spec"}
+EXCLUDED={".state",".vendor",".venv",".build-venv",".tools","build",".git","__pycache__","test-results","dist","node_modules"}
 
 
 def source_files():
@@ -54,7 +56,8 @@ def main():
     problems=audit(files)
     if problems:raise SystemExit("\n".join(problems))
     dist=ROOT/"dist";dist.mkdir(exist_ok=True)
-    archive=dist/"LUMEN-Science-0.1.0-source.zip"
+    from lumen import __version__
+    archive=dist/("LUMEN-Science-"+__version__+"-source.zip")
     manifest=[]
     with zipfile.ZipFile(archive,"w",zipfile.ZIP_DEFLATED) as output:
         for path in files:

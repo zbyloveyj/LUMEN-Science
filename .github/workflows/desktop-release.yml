@@ -1,0 +1,118 @@
+name: desktop-release
+on:
+  push:
+    branches: [main]
+    paths:
+      - lumen/__init__.py
+      - packaging/**
+      - scripts/build_desktop.py
+      - scripts/setup_build_tools.ps1
+      - scripts/smoke_desktop.py
+      - requirements-desktop.txt
+      - .github/workflows/desktop-release.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: desktop-release
+  cancel-in-progress: false
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      publish: ${{ steps.version.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(python -c 'from lumen import __version__; print(__version__)')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if gh release view "v$version" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+  windows:
+    needs: version
+    if: needs.version.outputs.publish == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - run: python -m pip install -r requirements-desktop.txt
+      - run: python -m pip install --target .vendor ziglang==0.17.1
+      - name: Test source including desktop worker routing
+        env:
+          PYTHONUTF8: "1"
+          PYDEVD_DISABLE_FILE_VALIDATION: "1"
+          JUPYTER_PLATFORM_DIRS: "1"
+        run: python -m unittest discover -s tests -v
+      - name: Get verified packaging tools
+        run: ./scripts/setup_build_tools.ps1
+      - name: Build portable app and installer
+        run: python scripts/build_desktop.py --makensis .tools/nsis-3.11/makensis.exe
+      - name: Verify portable runtime without Python on PATH
+        run: python scripts/smoke_desktop.py dist/LUMENScience/LUMENScience.exe --report test-results/portable-smoke.json
+      - name: Verify installer, installed runtime and uninstaller
+        shell: pwsh
+        run: |
+          $version = '${{ needs.version.outputs.version }}'
+          $target = Join-Path $PWD 'test-results/installed/LUMENScience'
+          $setup = Join-Path $PWD "dist/LUMEN-Science-$version-windows-x64-setup.exe"
+          $process = Start-Process -FilePath $setup -ArgumentList '/S', "/D=$target" -WindowStyle Hidden -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Installer failed: $($process.ExitCode)" }
+          python scripts/smoke_desktop.py "$target/LUMENScience.exe" --report test-results/installed-smoke.json
+          if ($LASTEXITCODE -ne 0) { throw 'Installed app verification failed' }
+          Set-Content -LiteralPath "$target/user-keep.txt" -Value 'Uninstaller must preserve unknown files'
+          $uninstall = Start-Process -FilePath "$target/Uninstall.exe" -ArgumentList '/S', "_?=$target" -WindowStyle Hidden -Wait -PassThru
+          if ($uninstall.ExitCode -ne 0) { throw 'Uninstaller failed' }
+          if (Test-Path -LiteralPath "$target/LUMENScience.exe") { throw 'App was not removed' }
+          if (-not (Test-Path -LiteralPath "$target/user-keep.txt")) { throw 'Uninstaller removed user-created files' }
+      - name: Build source archive and checksums
+        shell: pwsh
+        run: |
+          python scripts/build_release.py
+          Copy-Item test-results/*-smoke.json dist/
+          $assets = Get-ChildItem dist -File | Where-Object { $_.Extension -in '.exe','.zip','.json' }
+          $lines = $assets | ForEach-Object { (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLower() + '  ' + $_.Name }
+          $lines | Set-Content -Encoding utf8 dist/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: desktop-release-assets
+          path: |
+            dist/*windows-x64-setup.exe
+            dist/*windows-x64-portable.zip
+            dist/*source.zip
+            dist/*-smoke.json
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+  publish:
+    needs: [version, windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: desktop-release-assets
+          path: release-assets
+      - name: Publish verified early preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.version.outputs.version }}
+        run: |
+          gh release create "v$VERSION" release-assets/* --target "$GITHUB_SHA" --prerelease --title "LUMEN Science $VERSION - Windows desktop preview" --notes-file docs/RELEASE_NOTES.md

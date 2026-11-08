@@ -21,9 +21,24 @@ LUMEN Science 将研究项目、AI 工具调用、多语言计算、数据检查
 
 公开仓库：[zbyloveyj/LUMEN-Science](https://github.com/zbyloveyj/LUMEN-Science)。欢迎通过 Issues 提交可复现反馈，或通过 Pull Request 参与开发。
 
-**当前版本是 0.1.0 早期预览。** 已提供可运行代码及自动验证；尚未完成多平台真实机器验收或与其他产品的系统对比，不宣称“全面超过”任何已有工作台。
+**当前版本是 0.2.0 桌面预览。** Windows 提供独立窗口、内置 Python 计算环境、安装包与便携包；macOS/Linux 目前使用源码启动。尚未完成多平台真实机器验收或与其他产品的系统对比，不宣称“全面超过”任何已有工作台。
 
 ## 快速开始
+
+### Windows：下载安装版
+
+打开 [GitHub Releases](https://github.com/zbyloveyj/LUMEN-Science/releases)，在 v0.2.0 预览发布的 Assets 中下载：
+
+- `windows-x64-setup.exe`：安装版，双击安装后通过桌面快捷方式打开。
+- `windows-x64-portable.zip`：免安装版，完整解压后打开 `LUMENScience.exe`，不要单独移动 exe。
+
+支持 Windows 10/11 x64。无需先安装 Python，内置 pandas、NumPy、SciPy、Matplotlib、Jupyter 内核和 SSH 依赖。安装程序在缺少 WebView2 时调用微软签名的官方引导程序联网补装；便携版需要系统已有 [WebView2 Evergreen Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)。
+
+项目和设置默认保存在 `%LOCALAPPDATA%\LUMENScience`，升级和卸载保留该目录。关闭原生窗口会停止本实例的本地计算服务。下载新版本安装包即可手动升级；当前没有应用内自动更新。
+
+这是尚未购买代码签名证书的早期预览，Windows 可能显示发布者未验证。可用发布页 `SHA256SUMS.txt` 核对文件；暂不承诺企业环境兼容性。其他语言的解释器和编译器仍需自行配置。
+
+### 开发者 / macOS / Linux：源码启动
 
 需要 Python 3.11 或以上。推荐在独立环境安装依赖：
 
