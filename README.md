@@ -9,6 +9,7 @@
 Connect research questions, code, compute, evidence, and results.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-347d67.svg)](LICENSE)
+[![Verify](https://github.com/zbyloveyj/LUMEN-Science/actions/workflows/ci.yml/badge.svg)](https://github.com/zbyloveyj/LUMEN-Science/actions/workflows/ci.yml)
 ![Status: early preview](https://img.shields.io/badge/status-early%20preview-c7a46b)
 ![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-6785a4)
 
@@ -122,7 +123,7 @@ python -m unittest discover -s tests -v
 
 测试会使用独立临时项目、合成数据、本机模型接口替身和 SSH/SFTP 测试服务。不会连接真实账号或业务服务器。计算内核和测试服务需要本机端口；受限执行环境可能禁止运行。
 
-本次 Windows 验证记录与测试边界见 [docs/VERIFICATION.md](docs/VERIFICATION.md)。GitHub Actions 工作流文件已提供；在公开仓库执行前，不宣称云端 CI 已通过。
+本地验证记录与测试边界见 [docs/VERIFICATION.md](docs/VERIFICATION.md)。[首次修复后的云端验证](https://github.com/zbyloveyj/LUMEN-Science/actions/runs/42445475251)中，Windows 的20项测试全部通过；Linux 整体通过，未安装 R 的对应子用例跳过。CI 通过不等于全部桌面交互和真实外部服务已完成验收。
 
 ## 结构
 

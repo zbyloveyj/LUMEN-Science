@@ -52,7 +52,7 @@ Declared inputs do not prove actual consumption or capture all dynamic dependenc
 python -m unittest discover -s tests -v
 ~~~
 
-Tests use synthetic projects, local model fixtures and a local SSH/SFTP protocol fixture. Current verification scope is documented in [docs/VERIFICATION.md](docs/VERIFICATION.md); a checked-in CI workflow is not evidence that hosted CI has passed.
+Tests use synthetic projects, local model fixtures and a local SSH/SFTP protocol fixture. [Hosted verification](https://github.com/zbyloveyj/LUMEN-Science/actions/runs/42445475251) passed on Windows (20 tests) and Linux (20 tests overall, with the unavailable R subcase skipped). Verification scope and remaining real-service/UI boundaries are documented in [docs/VERIFICATION.md](docs/VERIFICATION.md).
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and [ROADMAP.md](ROADMAP.md).
 

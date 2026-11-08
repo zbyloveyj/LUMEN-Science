@@ -6,6 +6,19 @@ Date: 2026-11-08. Version: 0.1.0 early preview.
 
 Windows local synthetic suite: **19 top-level tests passed**, 0 failures and 0 skipped, final full run 161.100 seconds. Several tests contain additional language or workflow subcases.
 
+This is the original local suite record. After the hosted Windows compatibility findings, a twentieth regression was added and checked locally: compiling from an ASCII staging directory still writes relative outputs in the unchanged Unicode project directory. Local R/Shell and Java checks were also repeated after the fix.
+
+## Hosted verification
+
+[GitHub Actions run 42445475251](https://github.com/zbyloveyj/LUMEN-Science/actions/runs/42445475251) completed successfully on 2026-11-08 for code commit c723e1908602531f6e3153974911e385051edd4f:
+
+- Windows: 20 tests, 55.185 seconds, successful.
+- Linux: 20 tests, 17.791 seconds, successful overall; the R subcase skipped because the toolchain was not configured.
+
+The initial hosted Windows attempt exposed compiler argument encoding and R temporary-directory space restrictions. The fix stages affected single-file compiler/R inputs in a per-run compatible temporary directory without renaming the project or changing its working directory. The regression covers actual relative output creation, rather than changing the test project to an ASCII-only name.
+
+Hosted execution uses test model/SSH fixtures and synthetic data; it is not real-service or complete desktop acceptance.
+
 Verified language execution:
 
 | Language | Scope |
@@ -58,7 +71,7 @@ Further browser automation stopped because the UI tool could not reliably determ
 
 ## Remaining boundaries
 
-- No macOS/Linux real-machine acceptance or hosted GitHub CI result yet.
+- No macOS/Linux desktop real-machine acceptance; Windows/Linux hosted CI scope is recorded above.
 - No real-user SSH credential/server acceptance.
 - No complete external provider/model compatibility matrix.
 - No signed standalone installer or clean-machine package acceptance.

@@ -14,11 +14,11 @@ Status: early preview, 0.1.0.
 - Markdown reports, notebook exports and project delivery archives.
 - Pinned-host-key SSH, bounded command logs and SFTP file transfer.
 - Local synthetic verification and a hosted-CI configuration.
+- Windows/Linux hosted CI passed; Linux R subcase was explicitly skipped because its toolchain was not installed.
 
 ## Next acceptance gates
 
 - macOS/Linux real-machine acceptance, including cancellation and credential behavior.
-- Hosted CI runs on the actual public repository.
 - External model/provider compatibility matrix with user-configured test credentials.
 - Real remote Linux acceptance with disposable user-provided infrastructure.
 - Desktop packaging, clean installation and upgrade validation.
