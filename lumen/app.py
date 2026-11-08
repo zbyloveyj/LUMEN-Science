@@ -305,7 +305,7 @@ class Workbench:
             return {**self.store.setting("config", {}), "has_key": bool(self.secrets.get()),
                     "environment": self.environment()}
         if action == "settings.save":
-            allowed = ("api_base", "model", "protocol", "python_path", "rscript_path", "r_kernel")
+            allowed = ("api_base", "model", "protocol", "python_path", "rscript_path", "r_kernel", "tool_temp_dir")
             config = self.store.setting("config", {})
             for key in allowed:
                 if key in p:
@@ -318,6 +318,9 @@ class Workbench:
             for key in ("python_path", "rscript_path"):
                 if config.get(key) and not Path(config[key]).is_file():
                     raise ValueError("解释器路径不存在：" + key)
+            if config.get("tool_temp_dir"):
+                from .scratch import compatible_base
+                compatible_base(config["tool_temp_dir"])
             paths = dict(config.get("runner_paths", {}))
             for key,value in p.items():
                 if key.startswith("runner_") and isinstance(value,str):

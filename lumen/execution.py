@@ -11,11 +11,13 @@ import subprocess
 import sys
 import threading
 import time
+from contextlib import nullcontext
 from pathlib import Path
 
 from .files import changed_outputs, identity, output_snapshot, safe_path, sha256
 from .store import now
 from .runners import LANGUAGES, plan, resolve_tool
+from .scratch import compiler_workspace
 
 
 def stop_process(process):
@@ -283,28 +285,33 @@ class Execution:
     def _independent(self, run_id, root, language, code, event, timeout):
         config = self.store.setting("config", {})
         run_dir = root / ".lumen" / "runs" / run_id
-        commands = plan(language, run_dir, config)
-        temp = run_dir / "temp"
-        temp.mkdir(exist_ok=True)
-        env = {**os.environ, "PYTHONIOENCODING": "utf-8", "MPLBACKEND": "Agg",
-               "TMP": str(temp), "TEMP": str(temp), "TMPDIR": str(temp),
-               "GOCACHE": str(temp / "go-cache"), "CARGO_TARGET_DIR": str(temp / "cargo"),
-               "ZIG_GLOBAL_CACHE_DIR":str(self.store.root/"compiler-cache"/"zig"),
-               "ZIG_LOCAL_CACHE_DIR":str(temp/"zig-cache")}
-        if language=="R" and os.name=="nt":
-            env.pop("LC_ALL",None)
-        result = None
-        for index, args in enumerate(commands):
-            if event.is_set():
-                return {"status": "cancelled", "environment": {"language": language}}
-            self.store.append_output(run_id, {"type": "notice", "text":
-                ("编译阶段" if len(commands)>1 and index==0 else "执行阶段") + " · " + Path(args[0]).name})
-            result = self._process(run_id, root, args, env, event, timeout)
-            if result["status"] != "success":
-                break
-        result["environment"] = {"language": language, "commands": commands,
-                                 "platform": sys.platform, **result.get("environment", {})}
-        return result
+        staged = os.name == "nt" and language in ("R", "c", "cpp", "java", "go", "rust")
+        context = compiler_workspace(config, run_dir / LANGUAGES[language]["file"]) if staged else nullcontext(run_dir)
+        with context as work_dir:
+            commands = plan(language, work_dir, config)
+            temp = work_dir / "temp"
+            temp.mkdir(exist_ok=True)
+            env = {**os.environ, "PYTHONIOENCODING": "utf-8", "MPLBACKEND": "Agg",
+                   "TMP": str(temp), "TEMP": str(temp), "TMPDIR": str(temp),
+                   "GOCACHE": str(temp / "go-cache"), "CARGO_TARGET_DIR": str(temp / "cargo"),
+                   "ZIG_GLOBAL_CACHE_DIR":str(self.store.root/"compiler-cache"/"zig"),
+                   "ZIG_LOCAL_CACHE_DIR":str(temp/"zig-cache")}
+            if language=="R" and os.name=="nt":
+                env.pop("LC_ALL",None)
+            result = None
+            for index, args in enumerate(commands):
+                if event.is_set():
+                    return {"status": "cancelled", "environment": {"language": language}}
+                self.store.append_output(run_id, {"type": "notice", "text":
+                    ("编译阶段" if len(commands)>1 and index==0 else "执行阶段") + " · " + Path(args[0]).name})
+                # Keep project cwd unchanged even when compiler source/temporary files are staged.
+                result = self._process(run_id, root, args, env, event, timeout)
+                if result["status"] != "success":
+                    break
+            result["environment"] = {"language": language, "commands": commands,
+                                     "platform": sys.platform, "working_directory": str(root),
+                                     "compiler_staging": staged, **result.get("environment", {})}
+            return result
 
     def _process(self, run_id, root, args, env, event, timeout):
         flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0

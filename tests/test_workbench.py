@@ -251,6 +251,20 @@ class WorkbenchTests(unittest.TestCase):
         self.assertEqual(len(notebook["cells"]),2)
         self.assertTrue(notebook["cells"][0]["source"].startswith("import pandas"))
 
+    def test_16_compiler_workspace_keeps_unicode_project_cwd(self):
+        # Compiler arguments must remain usable on non-Chinese Windows hosts,
+        # while relative data/output paths still resolve in the original project.
+        source='#include <stdio.h>\nint main(void){FILE *f=fopen("outputs/compiler-cwd.txt","w");if(!f)return 7;fputs("project-cwd",f);fclose(f);return 0;}'
+        run=self.run_code("c",source,240)
+        self.assert_success(run)
+        self.assertEqual((self.root/"outputs"/"compiler-cwd.txt").read_text(),"project-cwd")
+        self.assertEqual(run["detail"]["environment"]["working_directory"],str(self.root))
+        if os.name=="nt":
+            self.assertTrue(run["detail"]["environment"]["compiler_staging"])
+            for command in run["detail"]["environment"]["commands"]:
+                for argument in command[1:]:
+                    self.assertTrue(argument.isascii(),argument)
+
 
 if __name__=="__main__":
     unittest.main(verbosity=2)

@@ -13,5 +13,6 @@ Initial local preview.
 - Markdown, notebook and project delivery exports.
 - Pinned-host-key SSH, remote command logs and SFTP transfers.
 - Local automated verification, contribution/security documents and release preparation.
+- Windows Unicode project compatibility: isolated compiler/R staging, compatible temp paths, unchanged project working directory.
 
 Known limitations and acceptance gates are listed in ROADMAP.md and docs/VERIFICATION.md.
