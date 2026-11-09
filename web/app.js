@@ -81,6 +81,12 @@ document.addEventListener('keydown',e=>{
 });
 window.addEventListener('unhandledrejection',e=>{toast(e.reason?.message||'操作未完成',true);e.preventDefault();});
 state.view=localStorage.getItem('lumen.view')||'overview';
-load(localStorage.getItem('lumen.project'),state.view).catch(error=>{
+function notifyDesktopReady(){
+  window.pywebview?.api?.lumen_ready?.().catch(()=>{});
+}
+load(localStorage.getItem('lumen.project'),state.view).then(()=>{
+  if(window.pywebview?.api?.lumen_ready)notifyDesktopReady();
+  else window.addEventListener('pywebviewready',notifyDesktopReady,{once:true});
+}).catch(error=>{
   $('#app').innerHTML='<div class="startup-error"><h1>LUMEN Science</h1><p>'+esc(error.message)+'</p><p>请关闭页面并重新运行启动程序。</p></div>';
 });

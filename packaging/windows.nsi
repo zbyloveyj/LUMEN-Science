@@ -35,6 +35,12 @@ Section "LUMEN Science" Main
   SetRegView 32
   ReadRegStr $0 HKLM "Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" "pv"
   ReadRegStr $1 HKCU "Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" "pv"
+  ${If} $0 == "0.0.0.0"
+    StrCpy $0 ""
+  ${EndIf}
+  ${If} $1 == "0.0.0.0"
+    StrCpy $1 ""
+  ${EndIf}
   ${If} $0 == ""
   ${AndIf} $1 == ""
     InitPluginsDir
@@ -52,6 +58,7 @@ Section "LUMEN Science" Main
   WriteUninstaller "$INSTDIR\Uninstall.exe"
   CreateDirectory "$SMPROGRAMS\LUMEN Science"
   CreateShortCut "$SMPROGRAMS\LUMEN Science\LUMEN Science.lnk" "$INSTDIR\LUMENScience.exe"
+  CreateShortCut "$SMPROGRAMS\LUMEN Science\LUMEN Science (Browser).lnk" "$INSTDIR\LUMENScience.exe" "--browser"
   CreateShortCut "$SMPROGRAMS\LUMEN Science\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
   CreateShortCut "$DESKTOP\LUMEN Science.lnk" "$INSTDIR\LUMENScience.exe"
   WriteRegStr HKCU "Software\LUMENScience" "InstallDir" "$INSTDIR"
@@ -72,6 +79,7 @@ Section "Uninstall"
   RMDir "$INSTDIR"
   Delete "$DESKTOP\LUMEN Science.lnk"
   Delete "$SMPROGRAMS\LUMEN Science\LUMEN Science.lnk"
+  Delete "$SMPROGRAMS\LUMEN Science\LUMEN Science (Browser).lnk"
   Delete "$SMPROGRAMS\LUMEN Science\Uninstall.lnk"
   RMDir "$SMPROGRAMS\LUMEN Science"
   DeleteRegKey HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LUMENScience"

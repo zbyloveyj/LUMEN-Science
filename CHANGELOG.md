@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1 — 2026-11-09
+
+- Check that the local workbench responds before opening its window. Local startup checks and the embedded workbench connect directly to loopback.
+- Report desktop loading failures, record WebView2 errors in `desktop-startup.log`, and offer to open the running workbench in the default browser.
+- Add a browser mode shortcut to the Windows Start menu and treat the WebView2 `0.0.0.0` registry value as missing.
+
 ## 0.2.0 — 2026-11-08
 
 - Windows native desktop window using WebView2, with an application icon and download support.

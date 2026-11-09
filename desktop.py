@@ -36,7 +36,7 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except Exception:
+    except Exception as exc:
         import traceback
         from lumen.runtime import default_data_dir
         root = Path.cwd() / ".lumen" if WORKER_MODE else default_data_dir()
@@ -46,6 +46,7 @@ if __name__ == "__main__":
             traceback.print_exc(file=sys.__stderr__)
         if os.name == "nt" and not WORKER_MODE:
             import ctypes
-            ctypes.windll.user32.MessageBoxW(None, "LUMEN 未能启动。错误记录：" + str(root / "startup-error.log"),
+            reason = str(exc) if isinstance(exc, ConnectionError) else "LUMEN 未能启动。"
+            ctypes.windll.user32.MessageBoxW(None, f"{reason}\n\n错误记录：{root / 'startup-error.log'}",
                                              "LUMEN Science", 0x10)
         raise SystemExit(1)

@@ -185,8 +185,10 @@ class WorkbenchTests(unittest.TestCase):
     def test_10_http_auth_and_asset_safety(self):
         page=urllib.request.urlopen(self.baseurl).read().decode()
         self.assertIn(self.server.token,page);self.assertNotIn("__LUMEN_TOKEN__",page)
-        for name in ("app.js","core.js","workspace.js","research.js","notebook.js","servers.js","styles.css"):
-            self.assertEqual(urllib.request.urlopen(self.baseurl+"/"+name).status,200)
+        for name in ("app.js","core.js","workspace.js","research.js","notebook.js","servers.js","styles.css","apple.css"):
+            with urllib.request.urlopen(self.baseurl + "/" + name) as asset:
+                self.assertEqual(asset.status, 200)
+                self.assertEqual(asset.headers.get_content_type(), "text/javascript" if name.endswith(".js") else "text/css")
         request=urllib.request.Request(self.baseurl+"/api",data=b'{"action":"bootstrap"}',
                                        headers={"Content-Type":"application/json"})
         with self.assertRaises(urllib.error.HTTPError) as error:urllib.request.urlopen(request)

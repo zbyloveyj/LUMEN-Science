@@ -11,6 +11,14 @@ from pathlib import Path
 from .files import safe_path
 
 
+UI_CONTENT_TYPES = {
+    ".html": "text/html; charset=utf-8",
+    ".css": "text/css; charset=utf-8",
+    ".js": "text/javascript; charset=utf-8",
+    ".svg": "image/svg+xml",
+}
+
+
 class LocalServer(ThreadingHTTPServer):
     daemon_threads = True
     allow_reuse_address = True
@@ -85,10 +93,8 @@ class Handler(BaseHTTPRequestHandler):
             raw = path.read_bytes()
             if relative == "index.html":
                 raw = raw.replace(b"__LUMEN_TOKEN__", self.server.token.encode())
-            mime = mimetypes.guess_type(str(path))[0] or "application/octet-stream"
-            if path.suffix == ".js":
-                mime = "text/javascript"
-            self._headers(200, mime + ("; charset=utf-8" if path.suffix in (".html", ".css", ".js") else ""), len(raw))
+            mime = UI_CONTENT_TYPES.get(path.suffix.lower())
+            self._headers(200, mime or mimetypes.guess_type(str(path))[0] or "application/octet-stream", len(raw))
             self.wfile.write(raw)
         except (ValueError, KeyError, OSError):
             self._json(404, {"error": "文件或页面不可用"})
