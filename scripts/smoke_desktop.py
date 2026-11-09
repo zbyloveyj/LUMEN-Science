@@ -29,7 +29,19 @@ def main():
                    JUPYTER_PATH=str(root / "empty-jupyter"), JUPYTER_CONFIG_DIR=str(root / "jupyter-config"),
                    JUPYTER_DATA_DIR=str(root / "jupyter-data"))
         if os.name == "nt":
-            env["PATH"] = str(Path(os.environ["SystemRoot"]) / "System32")
+            if args.extended:
+                # Keep configured toolchains' runtime DLLs and utilities available.
+                # Exclude Python launchers so the bundled worker is still required.
+                directories = env.get("PATH", "").split(os.pathsep)
+                python_commands = ("python.exe", "python3.exe", "python.bat", "python.cmd")
+                env["PATH"] = os.pathsep.join(
+                    directory for directory in directories
+                    if directory and not any(
+                        (Path(directory.strip('"')) / name).is_file() for name in python_commands
+                    )
+                )
+            else:
+                env["PATH"] = str(Path(os.environ["SystemRoot"]) / "System32")
         expected_project = None
         for attempt in range(2):
             with (root / ("launch-" + str(attempt) + ".log")).open("wb") as log:
