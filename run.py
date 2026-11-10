@@ -10,12 +10,13 @@ import re
 import subprocess
 import sys
 import threading
+import time
 import webbrowser
 from pathlib import Path
 
 from lumen.app import Workbench
 from lumen.server import LocalServer
-from lumen.runtime import default_data_dir, frozen, resources
+from lumen.runtime import default_data_dir, frozen, resources, try_lock_instance
 
 
 def open_window(url, browser=False):
@@ -69,16 +70,18 @@ def desktop_window(url, root):
     log.addHandler(handler)
     arguments_key = "WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS"
     previous_arguments = os.environ.get(arguments_key)
+    finished = threading.Event()
+    failed = threading.Event()
     try:
         import webview
         webview.settings["ALLOW_DOWNLOADS"] = True
         window = webview.create_window("LUMEN Science", url, width=1440, height=960,
                                       min_size=(1000, 700))
-        finished = threading.Event()
-        failed = threading.Event()
-
         def lumen_ready():
             finished.set()
+
+        def lumen_close():
+            window.destroy()
 
         def check_startup():
             if os.name == "nt" and webview.renderer != "edgechromium":
@@ -93,7 +96,7 @@ def desktop_window(url, root):
             failed.set()
             window.destroy()
 
-        window.expose(lumen_ready)
+        window.expose(lumen_ready, lumen_close)
         window.events.closed += finished.set
         if os.name == "nt":
             # Only this process's embedded browser serves the local workbench UI.
@@ -110,6 +113,7 @@ def desktop_window(url, root):
         log.exception("Could not start the desktop window.")
         return False
     finally:
+        finished.set()
         if os.name == "nt":
             if previous_arguments is None:
                 os.environ.pop(arguments_key, None)
@@ -141,27 +145,41 @@ def main():
     root.mkdir(parents=True, exist_ok=True)
     info_file = root / "server.json"
     wants_desktop = not args.no_browser and frozen() and not args.browser
-    url = existing_url(info_file)
-    if url:
-        if wants_desktop:
-            if not desktop_window(url, root) and offer_browser(root):
-                open_window(url, browser=True)
-        elif not args.no_browser:
-            open_window(url, browser=args.browser)
-        if sys.stdout:
-            print(url, flush=True)
-        return
+    deadline = time.monotonic() + 30
+    with (root / "instance.lock").open("a+b") as lock:
+        while True:
+            url = existing_url(info_file)
+            if url:
+                break
+            if try_lock_instance(lock):
+                serve_workbench(args, root, info_file, wants_desktop)
+                return
+            if time.monotonic() >= deadline:
+                raise ConnectionError("工作台的另一个进程正在启动或退出。请稍后重新打开。")
+            time.sleep(.2)
+    if wants_desktop:
+        if not desktop_window(url, root) and offer_browser(root):
+            open_window(url, browser=True)
+    elif not args.no_browser:
+        open_window(url, browser=args.browser)
+    if sys.stdout:
+        print(url, flush=True)
+
+
+def serve_workbench(args, root, info_file, wants_desktop):
     app = Workbench(root)
     try:
         server = LocalServer(("127.0.0.1", args.port), app, resources() / "web")
     except OSError:
         server = LocalServer(("127.0.0.1", 0), app, resources() / "web")
     url = "http://127.0.0.1:" + str(server.server_port)
-    info_file.write_text(json.dumps({"url": url, "instance_id": server.instance_id, "pid": os.getpid()}),
-                         encoding="utf-8")
-    if sys.stdout:
-        print("LUMEN Science  " + url, flush=True)
     try:
+        pending_info = info_file.with_suffix(".tmp")
+        pending_info.write_text(json.dumps({"url": url, "instance_id": server.instance_id, "pid": os.getpid()}),
+                                encoding="utf-8")
+        pending_info.replace(info_file)
+        if sys.stdout:
+            print("LUMEN Science  " + url, flush=True)
         if args.no_browser:
             server.serve_forever(poll_interval=.3)
         else:
@@ -180,7 +198,7 @@ def main():
     except KeyboardInterrupt:
         pass
     finally:
-        for job in app.agent.jobs.values():
+        for job in tuple(app.agent.jobs.values()):
             job["cancel"].set()
             job["decision"].set()
         app.execution.shutdown()

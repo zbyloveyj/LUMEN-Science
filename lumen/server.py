@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import mimetypes
 import secrets
+import socket
 import threading
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -21,7 +22,12 @@ UI_CONTENT_TYPES = {
 
 class LocalServer(ThreadingHTTPServer):
     daemon_threads = True
-    allow_reuse_address = True
+    allow_reuse_address = not hasattr(socket, "SO_EXCLUSIVEADDRUSE")
+
+    def server_bind(self):
+        if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
 
     def __init__(self, address, app, static):
         self.app = app
@@ -96,10 +102,10 @@ class Handler(BaseHTTPRequestHandler):
             mime = UI_CONTENT_TYPES.get(path.suffix.lower())
             self._headers(200, mime or mimetypes.guess_type(str(path))[0] or "application/octet-stream", len(raw))
             self.wfile.write(raw)
-        except (ValueError, KeyError, OSError):
-            self._json(404, {"error": "文件或页面不可用"})
         except (BrokenPipeError, ConnectionResetError):
             pass
+        except (ValueError, KeyError, OSError):
+            self._json(404, {"error": "文件或页面不可用"})
 
     def do_POST(self):
         if not self._host_ok() or not secrets.compare_digest(

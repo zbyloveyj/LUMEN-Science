@@ -21,13 +21,13 @@ LUMEN Science 将研究项目、AI 工具调用、多语言计算、数据检查
 
 公开仓库：[zbyloveyj/LUMEN-Science](https://github.com/zbyloveyj/LUMEN-Science)。欢迎通过 Issues 提交可复现反馈，或通过 Pull Request 参与开发。
 
-**当前版本是 0.2.1 桌面预览。** Windows 提供独立窗口、内置 Python 计算环境、安装包与便携包。macOS 和 Linux 使用源码启动。
+**当前版本是 0.2.2 桌面预览。** Windows 提供独立窗口、内置 Python 计算环境、安装包与便携包。macOS 和 Linux 使用源码启动。
 
 ## 快速开始
 
 ### Windows：下载安装版
 
-打开 [GitHub Releases](https://github.com/zbyloveyj/LUMEN-Science/releases)，在 v0.2.1 的 Assets 中下载对应安装包。
+打开 [GitHub Releases](https://github.com/zbyloveyj/LUMEN-Science/releases)，在 v0.2.2 的 Assets 中下载对应安装包。
 
 - `windows-x64-setup.exe`：安装版，双击安装后通过桌面快捷方式打开。
 - `windows-x64-portable.zip`：免安装版，完整解压后打开 `LUMENScience.exe`，不要单独移动 exe。

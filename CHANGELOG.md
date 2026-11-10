@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.2 — 2026-11-10
+
+- Reserve the Windows loopback port exclusively and coordinate concurrent launches that share one data directory.
+- Add an explicit Exit Workbench action in the desktop window and browser mode.
+- Protect running app files during installation and removal. Continue with a browser entry point if the WebView2 bootstrapper fails.
+- Verify in-place upgrades from 0.2.1 and check that project and run history survive.
+
 ## 0.2.1 — 2026-11-09
 
 - Check that the local workbench responds before opening its window. Local startup checks and the embedded workbench connect directly to loopback.

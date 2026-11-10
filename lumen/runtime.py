@@ -1,9 +1,29 @@
 """Paths and Python commands for both source and self-contained desktop builds."""
 from __future__ import annotations
 
+import errno
 import os
 import sys
 from pathlib import Path
+
+
+def try_lock_instance(lock):
+    """Hold the workspace's single service lock until this file handle closes."""
+    try:
+        if os.name == "nt":
+            import msvcrt
+
+            lock.seek(0)
+            msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError as error:
+        if error.errno in (errno.EACCES, errno.EAGAIN):
+            return False
+        raise
+    return True
 
 
 def frozen():

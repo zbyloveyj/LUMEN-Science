@@ -22,6 +22,19 @@ SetCompressor /SOLID lzma
 !insertmacro MUI_LANGUAGE "SimpChinese"
 !insertmacro MUI_LANGUAGE "English"
 
+!macro CheckAppClosed filename
+  ${If} ${FileExists} "$INSTDIR\${filename}"
+    ClearErrors
+    FileOpen $3 "$INSTDIR\${filename}" a
+    ${If} ${Errors}
+      MessageBox MB_ICONEXCLAMATION "Close LUMEN Science and wait for local calculations to stop, then try again. In browser mode use Exit Workbench first." /SD IDOK
+      SetErrorLevel 2
+      Abort
+    ${EndIf}
+    FileClose $3
+  ${EndIf}
+!macroend
+
 Function .onInit
   ${IfNot} ${RunningX64}
     MessageBox MB_ICONSTOP "LUMEN Science requires 64-bit Windows 10/11."
@@ -31,6 +44,8 @@ FunctionEnd
 
 Section "LUMEN Science" Main
   SetShellVarContext current
+  !insertmacro CheckAppClosed "LUMENScience.exe"
+  !insertmacro CheckAppClosed "lumen-runtime.exe"
   ; Microsoft-documented Evergreen runtime detection (check both machine/user scopes).
   SetRegView 32
   ReadRegStr $0 HKLM "Software\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}" "pv"
@@ -48,9 +63,8 @@ Section "LUMEN Science" Main
     File "..\.tools\MicrosoftEdgeWebview2Setup.exe"
     ExecWait '"$PLUGINSDIR\MicrosoftEdgeWebview2Setup.exe" /silent /install' $2
     ${If} $2 != 0
-      MessageBox MB_ICONSTOP "Microsoft WebView2 could not be installed. Install the Evergreen Runtime from developer.microsoft.com/microsoft-edge/webview2, then retry."
-      SetErrorLevel 1
-      Abort
+      DetailPrint "Microsoft WebView2 setup returned $2. Browser mode is available."
+      MessageBox MB_ICONEXCLAMATION "Microsoft WebView2 setup did not finish. Installation will continue. You can open LUMEN Science (Browser) from the Start menu." /SD IDOK
     ${EndIf}
   ${EndIf}
   SetOutPath "$INSTDIR"
@@ -73,6 +87,8 @@ SectionEnd
 
 Section "Uninstall"
   SetShellVarContext current
+  !insertmacro CheckAppClosed "LUMENScience.exe"
+  !insertmacro CheckAppClosed "lumen-runtime.exe"
   SetRegView 32
   !include "..\build\uninstall-files.nsh"
   Delete "$INSTDIR\Uninstall.exe"

@@ -16,7 +16,7 @@ function shell(){
   $('#app').innerHTML='<aside class="sidebar"><a class="brand" href="#" data-action="nav" data-view="overview" aria-label="LUMEN 研究总览"><span class="brand-logo">L<span>✦</span></span><span>LUMEN<small>Science · 科研工作台</small></span></a>'+
     '<div class="sidebar-project-label">当前研究项目</div><select id="project-select" aria-label="当前项目">'+state.boot.projects.map(p=>'<option value="'+p.id+'" '+(p.id===state.project.id?'selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select>'+
     '<button class="new-project-button" data-action="new-project">'+icon('plus',16)+' 新建 / 连接项目</button><div class="nav-label">工作空间</div><nav>'+navigation.map(([id,label,ic])=>'<button class="nav-item '+(state.view===id?'active':'')+'" data-action="nav" data-view="'+id+'">'+icon(ic)+'<span>'+label+'</span>'+(id==='servers'?'<small>SSH</small>':'')+'</button>').join('')+'</nav>'+
-    '<div class="sidebar-bottom"><div class="local-card"><span class="status-dot"></span><strong>本地优先</strong><small>项目与计算，在你手中</small></div><button class="nav-item" data-action="nav" data-view="settings">'+icon('settings')+'<span>设置与环境</span></button><div class="sidebar-version">LUMEN Science <span>'+esc(state.boot.version)+'</span></div></div></aside>'+
+    '<div class="sidebar-bottom"><div class="local-card"><span class="status-dot"></span><strong>本地优先</strong><small>项目与计算，在你手中</small></div><button class="nav-item" data-action="nav" data-view="settings">'+icon('settings')+'<span>设置与环境</span></button><button class="nav-item" data-action="exit-workbench">'+icon('close')+'<span>退出工作台</span></button><div class="sidebar-version">LUMEN Science <span>'+esc(state.boot.version)+'</span></div></div></aside>'+
     '<div class="main-shell"><header class="topbar"><div class="breadcrumb">'+icon('folder',16)+'<span>'+esc(state.project.name)+'</span><span class="crumb-slash">/</span><strong id="breadcrumb-view">研究总览</strong></div><div class="topbar-right"><select id="session-select" aria-label="当前会话">'+state.boot.sessions.map(s=>'<option value="'+s.id+'" '+(s.id===state.session.id?'selected':'')+'>'+esc(s.title)+'</option>').join('')+'</select><button class="icon-button" data-action="new-session" aria-label="新建会话" title="新建会话">'+icon('plus')+'</button><span class="topbar-divider"></span><span class="connection-badge"><i></i>本地服务就绪</span><button class="avatar" data-action="nav" data-view="settings" title="设置">研</button></div></header><main id="main-content"></main><footer class="app-footer"><span>'+icon('link',13)+' PROJECT-BOUND RESEARCH</span><span id="footer-environment">本机计算 · '+state.boot.environment.languages.filter(x=>x.ready).length+' 种语言可用</span></footer></div>';
 }
 async function stashEditors(){
@@ -54,6 +54,14 @@ async function load(projectId,view){
   await refreshFiles();shell();await navigate(view||state.view);
 }
 on('nav',b=>navigate(b.dataset.view));
+on('exit-workbench',async()=>{
+  const confirmed=await dialog('退出工作台','<p>退出将停止本机工作台及正在运行的本机计算。</p>','退出');
+  if(!confirmed)return;
+  await stashEditors();
+  await api('system.shutdown');
+  $('#app').innerHTML='<div class="startup-error"><h1>工作台已退出</h1><p>可以关闭此页面。再次使用时，从快捷方式打开 LUMEN Science。</p></div>';
+  window.pywebview?.api?.lumen_close?.().catch(()=>{});
+});
 document.addEventListener('navigate',e=>navigate(e.detail));
 document.addEventListener('switch-project',e=>load(e.detail.id,e.detail.view));
 document.addEventListener('change',async e=>{

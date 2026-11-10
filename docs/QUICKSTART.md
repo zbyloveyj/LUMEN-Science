@@ -10,6 +10,8 @@ Windows 普通用户可在 [Releases](https://github.com/zbyloveyj/LUMEN-Science
 
 如果独立窗口显示 `127.0.0.1` 连接超时，先关闭窗口，再从开始菜单打开 **LUMEN Science (Browser)**（0.2.1 起）。若浏览器仍无法连接，可在工作台启动时打开 `%LOCALAPPDATA%\LUMENScience\server.json`，在浏览器中访问其中的 `url`。独立窗口的加载问题见同目录的 `desktop-startup.log`，本机服务的启动错误见 `startup-error.log`。
 
+从 0.2.2 起，侧栏的 **退出工作台** 会停止本机服务。在浏览器模式下，升级前也请先使用这个按钮。安装程序检测到旧版仍在运行时会提示先退出。
+
 ## 2. 先体验合成示例
 
 示例项目包含120行固定随机种子生成的数据，不代表真实研究。

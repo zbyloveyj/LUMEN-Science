@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -18,8 +19,12 @@ def main():
     parser.add_argument("executable", type=Path)
     parser.add_argument("--report", type=Path, default=Path("test-results/desktop-smoke.json"))
     parser.add_argument("--extended", action="store_true", help="Also check external languages, cancellation, AI and SSH fixtures")
+    parser.add_argument("--upgrade-installer", type=Path, help="Verify an in-place Windows upgrade of a disposable test installation")
     args = parser.parse_args()
     executable = args.executable.resolve()
+    upgrade = args.upgrade_installer.resolve(strict=True) if args.upgrade_installer else None
+    if upgrade and (os.name != "nt" or not (executable.parent / ".lumen-installation").is_file()):
+        parser.error("--upgrade-installer requires an installed Windows test copy")
     args.report.parent.mkdir(parents=True, exist_ok=True)
     checks = []
     with tempfile.TemporaryDirectory(prefix="lumen-installed-", dir=args.report.parent) as directory:
@@ -43,6 +48,7 @@ def main():
             else:
                 env["PATH"] = str(Path(os.environ["SystemRoot"]) / "System32")
         expected_project = None
+        original_version = None
         for attempt in range(2):
             with (root / ("launch-" + str(attempt) + ".log")).open("wb") as log:
                 process = subprocess.Popen([str(executable), "--no-browser", "--port", "0", "--data-dir", str(root / "state")],
@@ -81,9 +87,14 @@ def main():
                     if attempt:
                         assert project_id == expected_project
                         assert len(api("runs.list", project_id=project_id)) >= 4
+                        if upgrade:
+                            installed_version = (executable.parent / ".lumen-installation").read_text(encoding="utf-8").strip()
+                            assert boot["version"] == installed_version and boot["version"] != original_version
+                            checks.append("in_place_upgrade_preserves_projects_and_runs")
                         checks.append("restart_preserves_project_and_run_history")
                         continue
                     expected_project = project_id
+                    original_version = boot["version"]
                     checks.append("isolated_start_without_system_python")
                     api("settings.save", python_path=boot["environment"]["python"])
                     assert api("data.preview", project_id=project_id, path="data/synthetic_experiment.csv")["rows"] == 120
@@ -123,6 +134,13 @@ def main():
                         sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tests"))
                         from desktop_api_checks import extended_checks
                         checks.extend(extended_checks(api, code, wait, boot, url))
+                    if upgrade:
+                        original_exe = hashlib.sha256(executable.read_bytes()).digest()
+                        running_upgrade = subprocess.run([str(upgrade), "/S", "/D=" + str(executable.parent)], timeout=60)
+                        assert running_upgrade.returncode == 2, running_upgrade.returncode
+                        assert hashlib.sha256(executable.read_bytes()).digest() == original_exe
+                        assert api("bootstrap")["version"] == original_version
+                        checks.append("upgrade_leaves_running_installation_intact")
                 finally:
                     if token and process.poll() is None:
                         try:
@@ -135,6 +153,8 @@ def main():
                         process.kill()
                         raise AssertionError("Packaged app did not stop after shutdown")
                     assert process.returncode == 0, "Packaged app failed during shutdown"
+            if upgrade and not attempt:
+                subprocess.run([str(upgrade), "/S", "/D=" + str(executable.parent)], timeout=120, check=True)
     report = {"status": "passed", "checks": [c for c in checks if "_skipped_" not in c],
               "skipped": [c for c in checks if "_skipped_" in c],
               "scope": "Packaged Windows API/runtime; graphical window is checked separately"}

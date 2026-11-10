@@ -83,6 +83,23 @@ jobs:
           if ($uninstall.ExitCode -ne 0) { throw 'Uninstaller failed' }
           if (Test-Path -LiteralPath "$target/LUMENScience.exe") { throw 'App was not removed' }
           if (-not (Test-Path -LiteralPath "$target/user-keep.txt")) { throw 'Uninstaller removed user-created files' }
+      - name: Verify upgrade from v0.2.1 while running and after exit
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = '${{ needs.version.outputs.version }}'
+          $previous = 'LUMEN-Science-0.2.1-windows-x64-setup.exe'
+          $download = Join-Path $PWD 'test-results/previous-release'
+          $target = Join-Path $PWD 'test-results/upgrade/LUMENScience'
+          gh release download v0.2.1 --repo zbyloveyj/LUMEN-Science --pattern $previous --dir $download
+          if ($LASTEXITCODE -ne 0) { throw 'Previous installer download failed' }
+          $oldSetup = Start-Process -FilePath "$download/$previous" -ArgumentList '/S', "/D=$target" -WindowStyle Hidden -Wait -PassThru
+          if ($oldSetup.ExitCode -ne 0) { throw 'Previous installer failed' }
+          python scripts/smoke_desktop.py "$target/LUMENScience.exe" --upgrade-installer "dist/LUMEN-Science-$version-windows-x64-setup.exe" --report test-results/upgrade-smoke.json
+          if ($LASTEXITCODE -ne 0) { throw 'Upgrade verification failed' }
+          $uninstall = Start-Process -FilePath "$target/Uninstall.exe" -ArgumentList '/S', "_?=$target" -WindowStyle Hidden -Wait -PassThru
+          if ($uninstall.ExitCode -ne 0) { throw 'Upgrade test cleanup failed' }
       - name: Build source archive and checksums
         shell: pwsh
         run: |

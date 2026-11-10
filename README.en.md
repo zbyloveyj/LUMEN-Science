@@ -2,7 +2,7 @@
 
 A local-first, multilingual AI research workbench.
 
-LUMEN connects project files, AI tool calls, computation, literature metadata, result snapshots, and research delivery. Version 0.2.1 is an early desktop preview. Windows has a native window, bundled Python, an installer and a portable ZIP. macOS and Linux use source startup.
+LUMEN connects project files, AI tool calls, computation, literature metadata, result snapshots, and research delivery. Version 0.2.2 is an early desktop preview. Windows has a native window, bundled Python, an installer and a portable ZIP. macOS and Linux use source startup.
 
 Download Windows x64 assets from [Releases](https://github.com/zbyloveyj/LUMEN-Science/releases). The installer adds shortcuts and installs Microsoft WebView2 if it is missing. The portable ZIP must be extracted in full and requires WebView2 already installed. Data is stored in `%LOCALAPPDATA%\LUMENScience` and preserved during uninstall. The preview is unsigned and uses manual upgrades. Other language toolchains are configured separately. Source instructions follow below.
 

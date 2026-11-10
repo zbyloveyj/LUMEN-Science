@@ -1,6 +1,8 @@
-# LUMEN Science 0.2.1 — Windows desktop preview
+# LUMEN Science 0.2.2 — Windows desktop preview
 
-这一版改进了 `127.0.0.1` 连接超时的启动处理。程序先检查本机服务，再加载独立窗口。窗口加载失败时会提示改用默认浏览器，并将诊断记录写到 `%LOCALAPPDATA%\LUMENScience\desktop-startup.log`。安装后也可从开始菜单打开 **LUMEN Science (Browser)**。
+这版改进了本机启动、退出和覆盖升级。Windows 默认端口被占用时会自动选择可用端口。同一数据目录的多个启动请求会复用一个服务。窗口加载失败时可从提示切换到浏览器，也可以直接从开始菜单打开 **LUMEN Science (Browser)**。
+
+覆盖安装前，请在工作台侧栏选择 **退出工作台**。项目、设置和运行记录保存在独立的数据目录。发布验收会用 0.2.1 创建并运行项目，然后覆盖安装新版并重新读取项目和运行记录。
 
 开源、本地优先的 AI 科研工作台：项目、对话、多语言计算、数据探索、文献元数据、结果记录与 SSH/SFTP。
 
