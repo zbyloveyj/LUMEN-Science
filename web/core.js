@@ -44,9 +44,23 @@ export function dialog(title,body,submit='保存',wide=false){
   return new Promise(resolve=>{
     const modal=$('#modal');modal.className=wide?'wide':'';
     modal.innerHTML='<form method="dialog"><div class="modal-heading"><h2>'+esc(title)+'</h2><button class="icon-button" value="cancel" aria-label="关闭">'+icon('close')+'</button></div><div class="modal-body">'+body+'</div><div class="modal-footer"><button class="btn secondary" value="cancel">取消</button><button class="btn primary" value="save">'+esc(submit)+'</button></div></form>';
-    modal.addEventListener('close',()=>{
-      resolve(modal.returnValue==='save'?Object.fromEntries(new FormData($('form',modal))):null);
-    },{once:true});modal.showModal();
+    const form=$('form',modal);
+    const onClose=()=>{
+      if(modal.open)return;
+      modal.removeEventListener('close',onClose);
+      resolve(null);
+    };
+    modal.returnValue='';
+    modal.addEventListener('close',onClose);
+    form.addEventListener('submit',event=>{
+      event.preventDefault();
+      const value=event.submitter?.value||'';
+      const result=value==='save'?Object.fromEntries(new FormData(form)):null;
+      modal.removeEventListener('close',onClose);
+      modal.close(value);
+      resolve(result);
+    });
+    modal.showModal();
   });
 }
 export function showPanel(title,body){
