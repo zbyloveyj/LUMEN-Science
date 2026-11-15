@@ -147,11 +147,11 @@ export async function settings(){
   return heading('SETTINGS / CONNECTIONS','连接你的模型与计算环境','模型服务与本地计算分别配置。未连接 AI 时，本地分析仍可使用。')+
     '<div class="settings-layout"><section class="panel settings-card"><div class="panel-title">'+icon('spark')+' AI 模型服务 <span class="badge '+(config.api_base?'success':'neutral')+'">'+(config.api_base?'已保存配置':'尚未连接')+'</span></div><form id="settings-form">'+
     '<label>接口基础地址<input name="api_base" value="'+esc(config.api_base||'')+'" placeholder="https://服务商提供的地址/v1"></label><div class="form-grid"><label>接口协议<select name="protocol"><option value="chat" '+(config.protocol!=='responses'?'selected':'')+'>Chat Completions 兼容协议</option><option value="responses" '+(config.protocol==='responses'?'selected':'')+'>Responses 协议</option></select></label><label>模型 ID<input name="model" value="'+esc(config.model||'')+'" placeholder="服务商提供的模型ID"></label></div><label>API Key<input name="api_key" type="password" autocomplete="off" placeholder="'+(config.has_key?'已加密保存；留空保留原密钥':'填写你自己的 API Key；本机服务可留空')+'"></label>'+
-    '<div class="note-inline">'+icon('info')+esc(config.environment.credential_storage)+'。使用在线模型时，消息和工具返回内容会通过所填接口传输。</div><div class="row">'+button('测试连接','test-model','secondary','','link')+button('保存配置','save-settings','primary','','check')+'</div><div id="model-test-result"></div>'+
+    '<label class="checkbox-label"><input name="clear_api_key" type="checkbox" value="yes">删除已保存的密钥</label><div class="note-inline">'+icon('info')+esc(config.environment.credential_storage)+'。使用在线模型时，消息和工具返回内容会通过所填接口传输。</div><div class="row">'+button('测试连接','test-model','secondary','','link')+button('保存配置','save-settings','primary','','check')+'</div><div id="model-test-result" role="status" aria-live="polite"></div>'+
     '<div class="panel-divider"></div><div class="panel-title">'+icon('terminal')+' 本地计算环境</div><label>Python 可执行文件（可选）<input placeholder="留空使用默认 Python；安装版自带计算环境" name="python_path" value="'+esc(config.python_path||'')+'"></label><label>Rscript 可执行文件（可选）<input name="rscript_path" value="'+esc(config.rscript_path||'')+'" placeholder="例如 C:\\Program Files\\R\\R-4.x.x\\bin\\Rscript.exe"></label><label>R 内核名称（可选）<input name="r_kernel" value="'+esc(config.r_kernel||'')+'" placeholder="已注册 IRkernel 的 kernelspec 名称，例如 ir"></label><p class="muted">配置 Rscript 时使用独立进程；使用 IRkernel 时支持持续变量。解释器变更在新内核生效，已有内核不会自动替换。</p>'+
     '<label>编译工具临时目录（可选）<input name="tool_temp_dir" value="'+esc(config.tool_temp_dir||'')+'" placeholder="默认使用系统临时目录；需要无空格的 ASCII 路径"></label><p class="muted">Windows 的 R 和编译工具使用独立临时工作区处理中文项目路径；项目工作目录不变。系统临时路径不兼容时可在此指定已有目录。</p>'+
     '<div class="panel-divider"></div><div class="panel-title">多语言工具路径</div><p class="muted">留空时自动检测。C/C++ 优先使用系统 GCC/Clang，未安装时可使用随项目安装的 Zig 编译器。</p>'+
-    [['cc','C 编译器'],['cxx','C++ 编译器'],['java','Java 运行环境'],['javac','Java 编译器'],['node','Node.js'],['go','Go'],['rustc','Rust'],['pwsh','PowerShell'],['bash','Bash']].map(([key,label])=>'<label>'+label+'<input name="runner_'+key+'" value="'+esc(config.runner_paths?.[key]||'')+'" placeholder="自动检测；也可填写可执行文件完整路径"></label>').join('')+'</form></section>'+
+    [['cc','C 编译器'],['cxx','C++ 编译器'],['java','Java 运行环境'],['javac','Java 编译器'],['node','Node.js'],['go','Go'],['rustc','Rust'],['pwsh','PowerShell'],['bash','Bash']].map(([key,label])=>'<label>'+label+'<input name="runner_'+key+'" value="'+esc(config.runner_paths?.[key]||'')+'" placeholder="自动检测；也可填写可执行文件完整路径"></label>').join('')+'<div class="settings-save-bar"><span id="settings-save-status" role="status">配置已载入</span>'+button('保存全部设置','save-settings','primary','','check')+'</div></form></section>'+
     '<aside><section class="panel"><div class="panel-title">本机环境检查</div><div class="environment-head">'+icon('check',22)+'<div><strong>Python '+esc(config.environment.version)+'</strong><small>'+esc(config.environment.platform)+'</small></div></div>'+
     Object.entries(config.environment.packages).map(([n,v])=>'<div class="environment-row"><code>'+n+'</code><span class="'+(v?'success-text':'warning-text')+'">'+esc(v||'未安装')+'</span></div>').join('')+
     '<div class="environment-row"><span>R</span><span class="'+(config.environment.rscript||config.environment.kernels.includes('ir')?'success-text':'warning-text')+'">'+(config.environment.rscript||config.environment.kernels.includes('ir')?'已检测到':'尚未配置')+'</span></div></section>'+
@@ -159,9 +159,26 @@ export async function settings(){
     '<section class="panel settings-help"><div class="panel-title">当前版本的能力范围</div><p>十二种语言执行适配、SSH/SFTP 服务器接入、本地项目、AI 工具调用、数据检查、分析流程、文献检索、版本留存、独立重跑和交付导出。</p><p>SSH 功能面向 Linux/Unix 服务器。当前尚未实现多人协作、远程持续 Notebook、跨机环境自动重建及完整依赖捕获。</p><p>自动执行代码使用当前账户权限，本版本未提供操作系统级隔离。</p><small>LUMEN Science '+esc(state.boot.version)+' · 本地工作台</small></section></aside></div>';
 }
 function settingsValues(){return Object.fromEntries(new FormData($('#settings-form')));}
-on('save-settings',async()=>{
-  const values=settingsValues();await api('settings.save',values);state.boot.config={...values,has_key:!!values.api_key||state.boot.config.has_key};delete state.boot.config.api_key;
-  $('[name=api_key]').value='';toast('模型与计算环境配置已保存');
+document.addEventListener('input',e=>{
+  if(e.target.closest('#settings-form')){state.settingsDirty=true;const label=$('#settings-save-status');if(label)label.textContent='有未保存的修改';}
+});
+on('save-settings',async b=>{
+  const form=$('#settings-form');
+  if(!form.reportValidity())return;
+  const buttons=[...form.querySelectorAll('[data-action="save-settings"]')];
+  buttons.forEach(button=>button.disabled=true);
+  try{
+    const values=settingsValues();
+    if(values.clear_api_key&&values.api_key)throw Error('请先取消删除密钥，再填写新密钥');
+    await api('settings.save',values);
+    const saved=await api('settings.get');
+    state.boot.config={...saved};delete state.boot.config.environment;
+    state.settingsDirty=false;
+    form.elements.api_key.value='';form.elements.clear_api_key.checked=false;
+    form.elements.api_key.placeholder=saved.has_key?'已保存；留空保留原密钥':'填写你自己的 API Key；本机服务可留空';
+    $('#settings-save-status').textContent='全部设置已保存';
+    toast('全部设置已保存；解释器变更在新内核生效');
+  }finally{buttons.forEach(button=>button.disabled=false);}
 });
 on('test-model',async b=>{
   b.disabled=true;$('#model-test-result').innerHTML='<p class="muted">正在测试连接…</p>';
@@ -169,4 +186,8 @@ on('test-model',async b=>{
     const result=await api('settings.test',settingsValues());
     $('#model-test-result').innerHTML='<div class="test-result success-text">'+icon('check')+'连接成功：'+esc(result.reply)+'</div>';
   }catch(error){$('#model-test-result').innerHTML='<p class="output-error">'+esc(error.message)+'</p>';}finally{b.disabled=false;}
+});
+
+document.addEventListener('submit',e=>{
+  if(e.target.id==='settings-form'){e.preventDefault();e.target.querySelector('[data-action="save-settings"]').click();}
 });

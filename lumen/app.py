@@ -334,8 +334,12 @@ class Workbench:
                     else:
                         paths.pop(name,None)
             config["runner_paths"]=paths
-            if p.get("api_key"):
-                self.secrets.set(str(p["api_key"]))
+            if p.get("clear_api_key") and p.get("api_key"):
+                raise ValueError("不能同时删除密钥和填写新密钥")
+            if p.get("clear_api_key"):
+                self.secrets.set("")
+            elif p.get("api_key"):
+                self.secrets.set(str(p["api_key"]).strip())
             self.store.set_setting("config", config)
             return {"saved": True, "has_key": bool(self.secrets.get())}
         if action == "settings.test":

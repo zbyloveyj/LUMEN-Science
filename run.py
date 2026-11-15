@@ -14,6 +14,7 @@ import time
 import webbrowser
 from pathlib import Path
 
+from lumen.window_state import load_window_state, save_window_state
 from lumen.app import Workbench
 from lumen.server import LocalServer
 from lumen.runtime import default_data_dir, frozen, resources, try_lock_instance
@@ -75,8 +76,13 @@ def desktop_window(url, root):
     try:
         import webview
         webview.settings["ALLOW_DOWNLOADS"] = True
-        window = webview.create_window("LUMEN Science", url, width=1440, height=960,
+        window = webview.create_window("LUMEN Science", url,
+                                      **load_window_state(root, webview.screens),
                                       min_size=(1000, 700))
+        def remember_window():
+            save_window_state(root, window)
+
+        window.events.closing += remember_window
         def lumen_ready():
             finished.set()
 
@@ -138,13 +144,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--data-dir", default=str(default_data_dir()))
-    parser.add_argument("--no-browser", action="store_true")
-    parser.add_argument("--browser", action="store_true", help="Use an external browser instead of the desktop window")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--no-browser", action="store_true")
+    mode.add_argument("--browser", action="store_true", help="Use an external browser instead of the desktop window")
+    mode.add_argument("--desktop", action="store_true", help="Open a native desktop window (requires requirements-desktop.txt)")
     args = parser.parse_args()
     root = Path(args.data_dir).resolve()
     root.mkdir(parents=True, exist_ok=True)
     info_file = root / "server.json"
-    wants_desktop = not args.no_browser and frozen() and not args.browser
+    wants_desktop = not args.no_browser and (args.desktop or frozen()) and not args.browser
     deadline = time.monotonic() + 30
     with (root / "instance.lock").open("a+b") as lock:
         while True:

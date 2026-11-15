@@ -40,6 +40,11 @@ class LocalServer(ThreadingHTTPServer):
 class Handler(BaseHTTPRequestHandler):
     server_version = "LUMEN-Science"
 
+    def setup(self):
+        super().setup()
+        # Bound idle / partial local HTTP requests instead of retaining a thread forever.
+        self.connection.settimeout(30)
+
     def log_message(self, *args):
         pass
 
@@ -69,6 +74,8 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(raw)
 
     def do_GET(self):
+        if self.headers.get("Sec-Fetch-Site") == "cross-site":
+            return self._json(403, {"error": "Cross-site access not allowed"})
         if not self._host_ok():
             return self._json(403, {"error": "Host not allowed"})
         url = urllib.parse.urlparse(self.path)

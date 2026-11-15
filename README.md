@@ -21,13 +21,13 @@ LUMEN Science 将研究项目、AI 工具调用、多语言计算、数据检查
 
 公开仓库：[zbyloveyj/LUMEN-Science](https://github.com/zbyloveyj/LUMEN-Science)。欢迎通过 Issues 提交可复现反馈，或通过 Pull Request 参与开发。
 
-**当前版本是 0.2.2 桌面预览。** Windows 提供独立窗口、内置 Python 计算环境、安装包与便携包。macOS 和 Linux 使用源码启动。
+**当前版本是 0.2.3 桌面预览。** Windows 提供独立窗口、内置 Python 计算环境、安装包与便携包。macOS 和 Linux 使用源码启动。
 
 ## 快速开始
 
 ### Windows：下载安装版
 
-打开 [GitHub Releases](https://github.com/zbyloveyj/LUMEN-Science/releases)，在 v0.2.2 的 Assets 中下载对应安装包。
+打开 [GitHub Releases](https://github.com/zbyloveyj/LUMEN-Science/releases)，在 v0.2.3 的 Assets 中下载对应安装包。
 
 - `windows-x64-setup.exe`：安装版，双击安装后通过桌面快捷方式打开。
 - `windows-x64-portable.zip`：免安装版，完整解压后打开 `LUMENScience.exe`，不要单独移动 exe。
@@ -62,7 +62,7 @@ macOS / Linux：
 .venv/bin/python run.py
 ~~~
 
-Windows 也可双击“启动科研工作台.cmd”。程序打开本机浏览器窗口，服务仅监听 127.0.0.1。默认尝试端口 8765，端口占用时自动选择空闲端口；实际地址记录在 .state/server.json。
+Windows 桌面开发启动先安装 `requirements-desktop.txt`，再执行 `python desktop.py --desktop`，或双击“启动科研工作台.cmd”。桌面模式使用独立 WebView2 窗口，记忆窗口位置和大小；关闭主窗口停止本实例服务。`python run.py` 保留浏览器开发模式，`--browser` 显式使用浏览器，`--no-browser` 仅启动服务；三种模式参数不能混用。服务仅监听 127.0.0.1。默认尝试端口 8765，端口占用时自动选择空闲端口；实际地址记录在 .state/server.json。
 
 第一次启动会创建一个含120行**合成数据**的独立示例项目，不读取其他目录中的研究数据。可以直接打开“分析流程 → 数据质量体检”体验本地分析，无需 AI 密钥。
 

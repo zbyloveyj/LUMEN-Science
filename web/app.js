@@ -32,6 +32,10 @@ async function stashEditors(){
 }
 async function navigate(view){
   if(!views[view])return;
+  if(state.view==='settings'&&state.settingsDirty){
+    if(!await dialog('离开设置','<p>设置有未保存的修改。离开后这些修改将丢失。</p>','放弃修改并离开'))return;
+    state.settingsDirty=false;
+  }
   await stashEditors();
   state.view=view;localStorage.setItem('lumen.view',view);
   const version=++renderVersion;
@@ -44,6 +48,10 @@ async function navigate(view){
   }catch(error){if(version===renderVersion)main.innerHTML='<div class="panel error-panel"><h2>此页面暂时未能打开</h2><p>'+esc(error.message)+'</p>'+button('重新打开','nav','secondary','data-view="'+view+'"','refresh')+'</div>';toast(error.message,true);}
 }
 async function load(projectId,view){
+  if(state.view==='settings'&&state.settingsDirty){
+    if(!await dialog('切换项目','<p>设置有未保存的修改。切换项目将丢弃这些修改。</p>','放弃修改并切换'))return;
+    state.settingsDirty=false;
+  }
   await stashEditors();
   state.boot=await api('bootstrap',{project_id:projectId});
   state.project=state.boot.projects.find(p=>p.id===state.boot.project_id);
