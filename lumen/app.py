@@ -14,7 +14,7 @@ import zipfile
 from pathlib import Path
 
 from . import __version__, literature
-from .agent import Agent, ModelClient
+from .agent import Agent, ModelClient, validate_model_base
 from .execution import Execution
 from .files import (MAX_FILE, identity, import_file, read_text, safe_path, sha256,
                     table_preview, walk_files, write_text)
@@ -317,6 +317,8 @@ class Workbench:
                     config[key] = value
             if config.get("protocol", "chat") not in ("chat", "responses"):
                 raise ValueError("未知接口协议")
+            if config.get("api_base"):
+                validate_model_base(config["api_base"])
             for key in ("python_path", "rscript_path"):
                 if config.get(key) and not Path(config[key]).is_file():
                     raise ValueError("解释器路径不存在：" + key)

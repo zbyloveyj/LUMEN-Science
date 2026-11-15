@@ -18,3 +18,17 @@ class SettingsTests(unittest.TestCase):
                 self.assertNotIn('fixture-secret',str(app.store.setting('config', {})))
             finally:
                 app.execution.shutdown()
+
+    def test_invalid_model_address_does_not_replace_settings_or_key(self):
+        with tempfile.TemporaryDirectory() as root:
+            app=Workbench(root)
+            try:
+                app.dispatch('settings.save',{'api_base':'https://example.com/v1','api_key':'original'})
+                for url in ('not-a-url','http://example.com/v1','https://user:pass@example.com','https://example.com?key=secret'):
+                    with self.subTest(url=url), self.assertRaises(ValueError):
+                        app.dispatch('settings.save',{'api_base':url,'api_key':'replacement'})
+                    self.assertEqual(app.store.setting('config')['api_base'],'https://example.com/v1')
+                    self.assertEqual(app.secrets.get(),'original')
+                app.dispatch('settings.save',{'api_base':'http://127.0.0.1:1234/v1'})
+            finally:
+                app.execution.shutdown()

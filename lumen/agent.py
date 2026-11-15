@@ -35,6 +35,16 @@ TOOLS = [
 ]
 
 
+def validate_model_base(base):
+    parsed = urllib.parse.urlparse(base)
+    if parsed.scheme not in ("http", "https") or not parsed.netloc or parsed.username or parsed.password:
+        raise ValueError("模型接口地址格式无效")
+    if parsed.scheme == "http" and parsed.hostname not in ("localhost", "127.0.0.1", "::1"):
+        raise ValueError("远程模型服务需要 HTTPS；本机模型允许 HTTP")
+    if parsed.query or parsed.fragment:
+        raise ValueError("模型基础地址不能包含查询参数或片段")
+
+
 class ModelClient:
     def __init__(self, config, secret):
         self.config = config
@@ -46,13 +56,7 @@ class ModelClient:
         model = str(config.get("model", "")).strip()
         if not base or not model:
             raise ValueError("请先在设置中填写模型接口地址与模型 ID")
-        parsed = urllib.parse.urlparse(base)
-        if parsed.scheme not in ("http", "https") or not parsed.netloc or parsed.username or parsed.password:
-            raise ValueError("模型接口地址格式无效")
-        if parsed.scheme == "http" and parsed.hostname not in ("localhost", "127.0.0.1", "::1"):
-            raise ValueError("远程模型服务需要 HTTPS；本机模型允许 HTTP")
-        if parsed.query or parsed.fragment:
-            raise ValueError("模型基础地址不能包含查询参数或片段")
+        validate_model_base(base)
         protocol = config.get("protocol", "chat")
         headers = {"Content-Type": "application/json", "User-Agent": "LUMEN-Science/0.1"}
         if self.secret:

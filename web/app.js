@@ -1,7 +1,7 @@
 import {state,$,esc,icon,api,on,toast,dialog,readSession,refreshFiles,button} from './core.js';
 import {notebook} from './notebook.js';
 import {dataView,workflows,library} from './research.js';
-import {overview,chat,artifacts,reports,settings} from './workspace.js';
+import {overview,chat,artifacts,reports,settings,saveOpenReport} from './workspace.js';
 import {servers} from './servers.js';
 
 const navigation=[
@@ -20,6 +20,7 @@ function shell(){
     '<div class="main-shell"><header class="topbar"><div class="breadcrumb">'+icon('folder',16)+'<span>'+esc(state.project.name)+'</span><span class="crumb-slash">/</span><strong id="breadcrumb-view">研究总览</strong></div><div class="topbar-right"><select id="session-select" aria-label="当前会话">'+state.boot.sessions.map(s=>'<option value="'+s.id+'" '+(s.id===state.session.id?'selected':'')+'>'+esc(s.title)+'</option>').join('')+'</select><button class="icon-button" data-action="new-session" aria-label="新建会话" title="新建会话">'+icon('plus')+'</button><span class="topbar-divider"></span><span class="connection-badge"><i></i>本地服务就绪</span><button class="avatar" data-action="nav" data-view="settings" title="设置">研</button></div></header><main id="main-content"></main><footer class="app-footer"><span>'+icon('link',13)+' PROJECT-BOUND RESEARCH</span><span id="footer-environment">本机计算 · '+state.boot.environment.languages.filter(x=>x.ready).length+' 种语言可用</span></footer></div>';
 }
 async function stashEditors(){
+  if(state.view==='reports')await saveOpenReport();
   if(state.view!=='notebook')return;
   for(const cell of document.querySelectorAll('[data-cell]')){
     const old=state.cells.find(c=>c.id===cell.dataset.cell);
@@ -30,12 +31,15 @@ async function stashEditors(){
     }
   }
 }
+async function allowLeaveSettings(){
+  if(state.view!=='settings'||!state.settingsDirty)return true;
+  if(!await dialog('未保存的设置','<p>设置有未保存的修改。离开后这些修改将丢失。</p>','放弃修改并离开'))return false;
+  state.settingsDirty=false;
+  return true;
+}
 async function navigate(view){
   if(!views[view])return;
-  if(state.view==='settings'&&state.settingsDirty){
-    if(!await dialog('离开设置','<p>设置有未保存的修改。离开后这些修改将丢失。</p>','放弃修改并离开'))return;
-    state.settingsDirty=false;
-  }
+  if(!await allowLeaveSettings())return false;
   await stashEditors();
   state.view=view;localStorage.setItem('lumen.view',view);
   const version=++renderVersion;
@@ -48,9 +52,9 @@ async function navigate(view){
   }catch(error){if(version===renderVersion)main.innerHTML='<div class="panel error-panel"><h2>此页面暂时未能打开</h2><p>'+esc(error.message)+'</p>'+button('重新打开','nav','secondary','data-view="'+view+'"','refresh')+'</div>';toast(error.message,true);}
 }
 async function load(projectId,view){
-  if(state.view==='settings'&&state.settingsDirty){
-    if(!await dialog('切换项目','<p>设置有未保存的修改。切换项目将丢弃这些修改。</p>','放弃修改并切换'))return;
-    state.settingsDirty=false;
+  if(!await allowLeaveSettings()){
+    if($('#project-select'))$('#project-select').value=state.project.id;
+    return false;
   }
   await stashEditors();
   state.boot=await api('bootstrap',{project_id:projectId});
@@ -76,24 +80,37 @@ document.addEventListener('change',async e=>{
   try{
     if(e.target.id==='project-select')await load(e.target.value,'overview');
     if(e.target.id==='session-select'){
+      if(!await allowLeaveSettings()){$('#session-select').value=state.session.id;return;}
       await stashEditors();state.session=state.boot.sessions.find(s=>s.id===e.target.value);
       localStorage.setItem('lumen.session.'+state.project.id,state.session.id);await navigate(state.view);
     }
   }catch(error){toast(error.message,true);}
 });
 on('new-project',async()=>{
+  if(!await allowLeaveSettings())return;
   const values=await dialog('新建或连接研究项目','<label>项目名称<input name="name" required placeholder="例如：我的实验数据研究"></label><label>研究目标<textarea name="description" placeholder="简要说明你希望回答的问题"></textarea></label><label>已有文件夹路径（可选）<input name="path" placeholder="留空则创建一个独立的新项目目录"></label><p class="muted">连接已有目录时会新增 data、scripts、outputs、reports 和 .lumen 目录，不移动原文件。</p>','打开项目');
   if(!values)return;const project=await api('project.create',values);await load(project.id,'overview');toast('研究项目已打开');
 });
 on('new-session',async()=>{
+  if(!await allowLeaveSettings())return;
   const values=await dialog('新建研究会话','<label>会话名称<input name="title" required placeholder="例如：模型结果核查"></label>','创建会话');if(!values)return;
   const session=await api('session.create',{project_id:state.project.id,title:values.title});
   localStorage.setItem('lumen.session.'+state.project.id,session.id);await load(state.project.id,'chat');
 });
 document.addEventListener('keydown',e=>{
+  if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){
+    if(!['settings','notebook','reports'].includes(state.view))return;
+    e.preventDefault();
+    if(state.view==='settings')$('#settings-form [data-action=save-settings]')?.click();
+    else stashEditors().then(()=>toast('编辑内容已保存')).catch(error=>toast(error.message,true));
+    return;
+  }
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){
     e.preventDefault();navigate('data');
   }
+});
+window.addEventListener('beforeunload',event=>{
+  if(state.settingsDirty||state.reportDirty){event.preventDefault();event.returnValue='';}
 });
 window.addEventListener('unhandledrejection',e=>{toast(e.reason?.message||'操作未完成',true);e.preventDefault();});
 state.view=localStorage.getItem('lumen.view')||'overview';

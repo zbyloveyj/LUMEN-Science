@@ -117,25 +117,37 @@ on('reproduce',async b=>{
 
 let reportPath='';
 export async function reports(){
-  reportPath='';
+  reportPath='';state.reportDirty=false;
   await refreshFiles();
   const files=state.files.filter(f=>f.path.startsWith('reports/')&&f.extension==='.md');
   return heading('REPORT / DELIVERY','让结果，成为可交接的研究记录','整理实际运行、编辑说明，导出包含脚本与结果快照的项目交付包。',
     button('生成分析记录','generate-report','primary','','file')+button('导出项目','export-project','secondary','','download'))+
     '<div class="report-layout"><section class="panel"><div class="panel-title">项目报告 <span class="count">'+files.length+'</span></div>'+
     (files.length?files.map(f=>'<button class="list-row list-button" data-action="edit-report" data-path="'+esc(f.path)+'">'+icon('file')+'<div><strong>'+esc(f.name)+'</strong><small>'+bytes(f.bytes)+'</small></div></button>').join(''):empty('还没有报告','可以根据真实运行记录生成初稿。'))+'</section>'+
-    '<section class="panel report-editor"><div class="panel-title"><span id="report-name">Markdown 报告编辑器</span><span class="push"></span>'+button('保存','save-report','secondary','','check')+'</div><textarea id="report-content" placeholder="选择左侧报告，或点击“生成分析记录”。" aria-label="报告正文"></textarea><div class="note-inline">'+icon('info')+'自动整理的是实际执行记录；研究目标、结果解释和科学结论需要结合研究设计补充。</div></section></div>';
+    '<section class="panel report-editor"><div class="panel-title"><span id="report-name">Markdown 报告编辑器</span><small id="report-save-status" role="status"></small><span class="push"></span>'+button('保存','save-report','secondary','','check')+'</div><textarea id="report-content" disabled placeholder="选择左侧报告，或点击“生成分析记录”。" aria-label="报告正文"></textarea><div class="note-inline">'+icon('info')+'自动整理的是实际执行记录；研究目标、结果解释和科学结论需要结合研究设计补充。</div></section></div>';
 }
-on('edit-report',async b=>{const file=await api('files.read',{project_id:state.project.id,path:b.dataset.path});reportPath=file.path;$('#report-name').textContent=file.path;$('#report-content').value=file.text;});
+on('edit-report',async b=>{await saveOpenReport();const file=await api('files.read',{project_id:state.project.id,path:b.dataset.path});reportPath=file.path;$('#report-name').textContent=file.path;$('#report-content').value=file.text;$('#report-content').disabled=false;$('#report-save-status').textContent='已载入';});
 on('generate-report',async()=>{
+  await saveOpenReport();
   const result=await api('report.generate',{project_id:state.project.id});
-  reportPath=result.path;$('#report-name').textContent=result.path;$('#report-content').value=result.text;toast('已根据实际运行生成分析记录');
+  reportPath=result.path;$('#report-name').textContent=result.path;$('#report-content').value=result.text;$('#report-content').disabled=false;$('#report-save-status').textContent='已保存';toast('已根据实际运行生成分析记录');
+});
+export async function saveOpenReport(){
+  const editor=$('#report-content');
+  if(!reportPath||!editor||!state.reportDirty)return;
+  const text=editor.value;
+  await api('files.save',{project_id:state.project.id,path:reportPath,text,overwrite:true});
+  if(editor.value===text){state.reportDirty=false;const label=$('#report-save-status');if(label)label.textContent='已保存';}
+}
+document.addEventListener('input',event=>{
+  if(event.target.id==='report-content'&&reportPath){state.reportDirty=true;$('#report-save-status').textContent='有未保存的修改 · 离开页面时自动保存';}
 });
 on('save-report',async()=>{
   if(!reportPath)throw Error('请先打开或生成一份报告');
-  await api('files.save',{project_id:state.project.id,path:reportPath,text:$('#report-content').value,overwrite:true});toast('报告已保存');
+  await saveOpenReport();toast('报告已保存');
 });
 on('export-project',async()=>{
+  await saveOpenReport();
   const form=await dialog('导出项目交付包','<p>包含项目脚本、当前成果、运行代码、环境与结果快照。密钥和应用设置不会加入交付包。</p><label class="checkbox-label"><input type="checkbox" name="include_data" value="yes">同时包含 data 目录中的输入数据</label><p class="muted">默认不复制原始数据；单文件上限32 MiB，项目文件合计上限150 MiB，跳过项会列入清单。</p>','生成交付包');
   if(!form)return;
   const result=await api('project.export',{project_id:state.project.id,include_data:form.include_data==='yes'});

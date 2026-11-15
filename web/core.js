@@ -43,7 +43,7 @@ export function button(text,action,kind='secondary',extra='',ic=''){
 export function dialog(title,body,submit='保存',wide=false){
   return new Promise(resolve=>{
     const modal=$('#modal');modal.className=wide?'wide':'';
-    modal.innerHTML='<form method="dialog"><div class="modal-heading"><h2>'+esc(title)+'</h2><button class="icon-button" value="cancel" aria-label="关闭">'+icon('close')+'</button></div><div class="modal-body">'+body+'</div><div class="modal-footer"><button class="btn secondary" value="cancel">取消</button><button class="btn primary" value="save">'+esc(submit)+'</button></div></form>';
+    modal.innerHTML='<form method="dialog"><div class="modal-heading"><h2>'+esc(title)+'</h2><button class="icon-button" value="cancel" formnovalidate aria-label="关闭">'+icon('close')+'</button></div><div class="modal-body">'+body+'</div><div class="modal-footer"><button class="btn secondary" value="cancel" formnovalidate>取消</button><button class="btn primary" value="save">'+esc(submit)+'</button></div></form>';
     const form=$('form',modal);
     const onClose=()=>{
       if(modal.open)return;

@@ -44,6 +44,7 @@ on('add-cell',async()=>{
   document.dispatchEvent(new CustomEvent('navigate',{detail:'notebook'}));
 });
 on('export-notebook',async()=>{
+  for(const cell of $$('[data-cell]'))await api('cell.save',await currentCell(cell.dataset.cell));
   const result=await api('notebook.export',{project_id:state.project.id,session_id:state.session.id});
   const {fileURL}=await import('./core.js');
   window.open(fileURL(result.path,true),'_blank','noopener');toast('Notebook 已导出；混合语言在元数据中标记。');
